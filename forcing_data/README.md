@@ -1,11 +1,26 @@
 # Example forcing data
 
-`London_StJamesPark_era5_2022_10-2023_12.nc` — real ERA5 point forcing for
-London_StJamesPark (one of the group's labmate9 sites, lat 51.5081, lon
--0.1338), October 2022 through December 2023, already in the layout
-`drive.nml` expects (`Tair`/`SwDown`/`LwDown`/`Pstar`/`Qair`/`Precip`/`Wind`).
+Source: ERA5 single-level reanalysis
 
-The tutorial's example period (Feb–Jul 2023) is a sub-range within it;
-`data_start`/`data_end` don't need to cover the file's full extent.
+Location:
+London St James's Park
+51.5081 N, -0.1338 E
+
+Period:
+2022-10-01 to 2023-12-31
+
+Temporal resolution:
+Hourly
+
+Variables:
+Tair
+Qair
+Wind
+Pstar
+SwDown
+LwDown
+Precip
+
+The tutorial's example period (Feb–Jul 2023) is a sub-range within it; `data_start`/`data_end` don't need to cover the file's full extent.
 
 **For a different site or period**, you do need your own ERA5 download.
