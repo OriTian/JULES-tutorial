@@ -1,8 +1,7 @@
 # Setting up and building JULES on the group's EC2 instance
 
-No JASMIN account needed. The group has a small AWS EC2 instance
-(Amazon Linux 2023, t3.micro) set up for this — ask in the group for the
-`.pem` key and the instance's public DNS name.
+The group has a small AWS EC2 instance
+(Amazon Linux 2023, t3.micro) set up for this.
 
 ## 1. Connect
 
