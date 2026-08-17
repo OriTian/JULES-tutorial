@@ -1,6 +1,3 @@
-#!/bin/bash
-# Builds JULES after setup_ec2.sh has been run once.
-# See README.md in this directory for what each variable/flag does and why.
 set -e
 
 source ~/miniforge3/bin/activate
