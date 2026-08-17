@@ -1,6 +1,3 @@
-! MORUSES physics switches only. The &urban_properties block (actual
-! geometry/material values) lives in ancillaries.nml, NOT here -- see the
-! duplicate-block gotcha in docs/tutorial.md before adding it to both files.
 &jules_urban
   anthrop_heat_scale=1.00
   l_moruses_albedo=.true.
