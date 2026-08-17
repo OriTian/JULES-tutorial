@@ -1,0 +1,8 @@
+&jules_latlon
+  l_coord_latlon=.true.
+  nvars=2
+  read_from_dump=.false.
+  use_file=.false.,.false.
+  var='latitude','longitude'
+  const_val=51.5081,-0.1338
+/

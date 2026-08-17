@@ -1,0 +1,22 @@
+! ERA5 point forcing. file= must cover data_start..data_end. Build with
+! scripts/preprocessing/prepare_era5_point_forcing.py.
+&jules_drive
+  bl_height=1000.0
+  data_start='${SIM_START}'          ! e.g. '2023-01-01 00:00:00'
+  data_end='${SIM_END}'              ! e.g. '2023-08-01 00:00:00'
+  data_period=3600
+  l_daily_disagg=.false.
+  l_perturb_driving=.false.
+  diff_frac_const=0.5
+  t_for_con_rain=373.15
+  t_for_snow=274.0
+  file='${DATA_DIR}/forcing/${SITE_NAME}_era5_point_forcing.nc'
+  nvars=7
+  var='sw_down','lw_down','t','q','pstar','precip','wind'
+  var_name='SwDown','LwDown','Tair','Qair','Pstar','Precip','Wind'
+  tpl_name='SwDown','LwDown','Tair','Qair','Pstar','Precip','Wind'
+  interp='nf','nf','nf','nf','nf','nf','nf'
+  z1_tq_in=2.0
+  z1_tq_vary=.false.
+  z1_uv_in=10.0
+/

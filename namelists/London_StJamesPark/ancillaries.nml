@@ -1,0 +1,66 @@
+! JULES reads ALL of these blocks from THIS file (ancillaries.nml), in
+! this exact order -- see init_ancillaries_mod.F90. There is no separate
+! per-block file; a standalone "jules_frac.nml" (or similar) is never read,
+! even if it exists in this directory -- same silent-ignore gotcha as
+! &urban_properties below and as nveg_params.nml (see docs/tutorial.md).
+
+&jules_frac
+  read_from_dump=.false.
+  file='/path/to/jules-urban-workflow/data/frac/London_StJamesPark_frac.nc'
+  frac_name='frac'
+/
+
+&jules_vegetation_props
+/
+
+&jules_soil_props
+  ! Generic mid-range soil values -- fine for a first run; swap in
+  ! site-specific soil data if you have it.
+  read_from_dump=.false.
+  const_z=.true.
+  nvars=9
+  use_file=9*.false.
+  var='b','sathh','satcon','sm_sat','sm_crit','sm_wilt','hcap','hcon','albsoil'
+  const_val=7.0, 0.204, 2.95e-6, 0.458, 0.330, 0.204, 1.3e6, 0.50, 0.20
+/
+
+&jules_top
+/
+
+&jules_pdm
+/
+
+&jules_agric
+  zero_agric=.true.
+/
+
+&jules_crop_props
+/
+
+&jules_irrig_props
+/
+
+&jules_rivers_props
+/
+
+&jules_water_resources_props
+/
+
+! This is the file JULES actually reads &urban_properties from.
+! Do not duplicate this block in urban.nml.
+&urban_properties
+  nvars=7
+  use_file=7*.false.
+  var='wrr','hwr','hgt','albwl','albrd','emisw','emisr'
+  const_val=0, 0, 0, 0.25, 0.08, 0.90, 0.95
+  ! wrr/hwr/hgt: ignored under l_urban_empirical=.true. (see urban.nml)
+  ! albwl/albrd/emisw/emisr: wall albedo, road albedo, wall emissivity,
+  !   road emissivity -- these DO take effect.
+/
+
+&jules_flake
+/
+
+&jules_co2
+  co2_mmr=6.455e-4
+/

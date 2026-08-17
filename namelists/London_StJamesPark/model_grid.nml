@@ -1,0 +1,36 @@
+&jules_input_grid
+  grid_is_1d=.false.
+  nx=1
+  ny=1
+  x_dim_name='x'
+  y_dim_name='y'
+  time_dim_name='time'
+/
+
+&jules_latlon
+  l_coord_latlon=.true.
+  nvars=2
+  read_from_dump=.false.
+  use_file=.false.,.false.
+  var='latitude','longitude'
+  const_val=51.5081,-0.1338
+/
+
+&jules_land_frac
+  file=''
+  land_frac_name=''
+/
+
+&jules_model_grid
+  force_1d_grid=.false.
+  land_only=.false.
+  use_subgrid=.false.
+/
+
+&jules_nlsizes
+  bl_levels=1
+/
+
+&jules_surf_hgt
+  zero_height=.true.
+/

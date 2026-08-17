@@ -1,0 +1,6 @@
+&imogen_run_opts
+/
+
+&imogen_onoff_switch
+  l_imogen=.false.
+/
