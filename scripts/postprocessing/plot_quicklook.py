@@ -2,7 +2,7 @@ import argparse
 
 import matplotlib
 
-matplotlib.use("Agg")  # no display on a headless machine (e.g. EC2)
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import netCDF4 as nc
 import pandas as pd
