@@ -1,0 +1,24 @@
+! _gb suffix = gridbox mean (frac-weighted across all tiles).
+! No suffix = per-tile (shape [time, ntile, 1, 1]) -- needed to see
+! canyon vs roof separately. See scripts/analysis/read_tile_output.py.
+&jules_output
+  dump_period=1
+  dump_period_unit='Y'
+  nprofiles=1
+  output_dir="${RUN_DIR}/output"
+  run_id='${SITE_NAME}'
+/
+
+&jules_output_profile
+  file_period=0
+  nvars=10
+  output_main_run=.true.
+  output_period=3600
+  output_spinup=.false.
+  output_start='${MAIN_RUN_START}'
+  output_type=10*'M'
+  profile_name='hourly_output'
+  var='ftl_gb','fqw_gb','tstar_gb','t1p5m_gb','sw_down','lw_down',
+      'rad_net','tstar','t1p5m','ftl'
+  var_name=10*''
+/

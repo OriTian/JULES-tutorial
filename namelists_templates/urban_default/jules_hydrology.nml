@@ -1,0 +1,11 @@
+&jules_hydrology
+  b_pdm=0.40
+  dz_pdm=0.50
+  l_hydrology=.true.
+  l_limit_gsoil=.false.
+  l_pdm=.true.
+  l_spdmvar=.false.
+  l_top=.false.
+  l_var_rainfrac=.false.
+  s_pdm=0.0
+/

@@ -1,0 +1,15 @@
+! MORUSES physics switches only. The &urban_properties block (actual
+! geometry/material values) lives in ancillaries.nml, NOT here -- see the
+! duplicate-block gotcha in docs/tutorial.md before adding it to both files.
+&jules_urban
+  anthrop_heat_scale=1.00
+  l_moruses_albedo=.true.
+  l_moruses_emissivity=.true.
+  l_moruses_macdonald=.true.
+  l_moruses_rough=.true.
+  l_moruses_storage=.true.
+  l_moruses_storage_thin=.true.
+  l_urban_empirical=.true.       ! KEY: geometry auto-estimated from
+                                  ! urban_fraction (UMDP C03), NOT from
+                                  ! the wrr/hwr/hgt values in ancillaries.nml
+/
