@@ -1,15 +1,7 @@
-"""
-Build a frac.nc for a single point, for ancillaries.nml's &jules_frac block
-(not a standalone jules_frac.nml -- JULES never opens that filename): 10
-tile fractions, in the same order as jules_surface_types.nml, summing to 1.0.
-"""
 import argparse
 import numpy as np
 import netCDF4 as nc
 
-# Order MUST match jules_surface_types.nml:
-# brd_leaf, ndl_leaf, c3_grass, c4_grass, shrub, lake, soil, ice,
-# urban_canyon, urban_roof
 TILE_NAMES = ["brd_leaf", "ndl_leaf", "c3_grass", "c4_grass", "shrub",
               "lake", "soil", "ice", "urban_canyon", "urban_roof"]
 
