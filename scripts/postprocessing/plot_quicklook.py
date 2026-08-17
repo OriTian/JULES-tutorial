@@ -1,10 +1,3 @@
-"""
-Quick single-variable timeseries plot from a JULES output file -- sanity
-check that a run produced sensible-looking output before deeper analysis.
-
-Usage:
-  python plot_quicklook.py output/my_run.hourly_output.nc --var t1p5m_gb --out quicklook.png
-"""
 import argparse
 
 import matplotlib
