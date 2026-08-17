@@ -1,9 +1,3 @@
-! JULES reads ALL of these blocks from THIS file (ancillaries.nml), in
-! this exact order -- see init_ancillaries_mod.F90. There is no separate
-! per-block file; a standalone "jules_frac.nml" (or similar) is never read,
-! even if it exists in this directory -- same silent-ignore gotcha as
-! &urban_properties below and as nveg_params.nml (see docs/tutorial.md).
-
 &jules_frac
   read_from_dump=.false.
   file='/path/to/jules-urban-workflow/data/frac/London_StJamesPark_frac.nc'
@@ -46,16 +40,12 @@
 &jules_water_resources_props
 /
 
-! This is the file JULES actually reads &urban_properties from.
-! Do not duplicate this block in urban.nml.
+
 &urban_properties
   nvars=7
   use_file=7*.false.
   var='wrr','hwr','hgt','albwl','albrd','emisw','emisr'
   const_val=0, 0, 0, 0.25, 0.08, 0.90, 0.95
-  ! wrr/hwr/hgt: ignored under l_urban_empirical=.true. (see urban.nml)
-  ! albwl/albrd/emisw/emisr: wall albedo, road albedo, wall emissivity,
-  !   road emissivity -- these DO take effect.
 /
 
 &jules_flake
