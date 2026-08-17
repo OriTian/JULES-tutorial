@@ -13,7 +13,7 @@ def load_output(nc_path, canyon_idx, roof_idx, canyon_frac, roof_frac):
     for var in ("tstar", "t1p5m"):
         if var not in ds.variables:
             continue
-        tile_vals = np.ma.filled(ds.variables[var][:], np.nan)  # [time, ntile, 1, 1]
+        tile_vals = np.ma.filled(ds.variables[var][:], np.nan) 
         gb_vals = np.ma.filled(ds.variables[f"{var}_gb"][:, 0, 0], np.nan) - 273.15
 
         canyon = tile_vals[:, canyon_idx, 0, 0] - 273.15
@@ -33,8 +33,8 @@ def load_output(nc_path, canyon_idx, roof_idx, canyon_frac, roof_frac):
 if __name__ == "__main__":
     data = load_output(
         "output/my_run.hourly_output.nc",
-        canyon_idx=8, roof_idx=9,       # from THIS run's jules_surface_types.nml
-        canyon_frac=0.36, roof_frac=0.41,  # from THIS run's frac.nc
+        canyon_idx=8, roof_idx=9, 
+        canyon_frac=0.36, roof_frac=0.41,
     )
     print("Gridbox-mean vs urban-only monthly mean tstar (°C):")
     print(f"  _gb:         {data['tstar_gb'].mean():.2f}")
