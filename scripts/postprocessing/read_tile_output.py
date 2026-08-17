@@ -1,26 +1,9 @@
-"""
-Read gridbox-mean and per-tile output from a JULES run, and compute the
-"urban-only" value (canyon+roof frac-weighted, excluding non-urban tiles)
-that the gridbox-mean (_gb) blends away.
-
-Before using this on your own run: check that run's OWN
-jules_surface_types.nml for the canyon_idx/roof_idx values below -- tile
-order is not guaranteed consistent across runs.
-"""
 import numpy as np
 import pandas as pd
 import netCDF4 as nc
 
 
 def load_output(nc_path, canyon_idx, roof_idx, canyon_frac, roof_frac):
-    """
-    canyon_idx, roof_idx : int
-        0-based tile indices, read from THIS run's jules_surface_types.nml
-        (1-based urban_canyon/urban_roof values, minus 1).
-    canyon_frac, roof_frac : float
-        Tile area fractions for this point, from ancillaries.nml's
-        &jules_frac frac.nc.
-    """
     ds = nc.Dataset(nc_path)
     t = pd.to_datetime(nc.num2date(
         ds.variables["time"][:], ds.variables["time"].units,
@@ -48,7 +31,6 @@ def load_output(nc_path, canyon_idx, roof_idx, canyon_frac, roof_frac):
 
 
 if __name__ == "__main__":
-    # Example usage -- edit for your own run.
     data = load_output(
         "output/my_run.hourly_output.nc",
         canyon_idx=8, roof_idx=9,       # from THIS run's jules_surface_types.nml
