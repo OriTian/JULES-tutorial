@@ -5,7 +5,7 @@ import xarray as xr
 
 def extract_point(era5_path, out_path, lat, lon):
     ds = xr.open_dataset(era5_path)
-    point = ds.interp(latitude=lat, longitude=lon)  # bilinear
+    point = ds.interp(latitude=lat, longitude=lon) 
 
     rename_map = {
         "ssrd": "SwDown", "strd": "LwDown", "t2m": "Tair",
