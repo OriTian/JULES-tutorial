@@ -1,6 +1,3 @@
-#!/bin/bash
-# One-time environment setup for building JULES on the group's EC2 instance.
-# See README.md in this directory for what each step does and why.
 set -e
 
 # 1. swap
