@@ -1,8 +1,0 @@
-&jules_input_grid
-  grid_is_1d=.false.
-  nx=1
-  ny=1
-  x_dim_name='x'
-  y_dim_name='y'
-  time_dim_name='time'
-/

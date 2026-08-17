@@ -1,6 +1,0 @@
-! NOT READ BY JULES. &jules_frac must live inside ancillaries.nml (JULES
-! reads it from a hard-coded "ancillaries.nml" file, along with 12 other
-! ancillary namelist blocks, in a fixed order -- see init_ancillaries_mod.F90
-! and the comment at the top of ancillaries.nml). Edit &jules_frac there,
-! not here. This file is kept only so its presence doesn't look like a
-! missing file; JULES never opens it.

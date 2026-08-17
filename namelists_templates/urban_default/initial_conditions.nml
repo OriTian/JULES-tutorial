@@ -1,8 +1,0 @@
-&jules_initial
-  dump_file=.false.
-  nvars=7
-  total_snow=.true.
-  use_file=7*.false.
-  var='canopy','tstar_tile','cs','rgrain','snow_tile','sthuf','t_soil'
-  const_val=0.0,285.0,10.0,50.0,0.0,0.75,285.0
-/

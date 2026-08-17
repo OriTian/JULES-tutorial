@@ -1,7 +1,0 @@
-&jules_soil_props
-  const_z=.true.
-  nvars=9
-  use_file=9*.false.
-  var='b','sathh','satcon','sm_sat','sm_crit','sm_wilt','hcap','hcon','albsoil'
-  const_val=7.0,0.204,2.95e-6,0.458,0.330,0.204,1.3e6,0.50,0.20
-/
