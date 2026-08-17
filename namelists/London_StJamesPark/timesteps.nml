@@ -9,5 +9,5 @@
 /
 
 &jules_spinup
-  max_spinup_cycles=0 
+  max_spinup_cycles=0   
 /
