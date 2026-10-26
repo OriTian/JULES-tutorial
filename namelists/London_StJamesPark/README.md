@@ -126,24 +126,15 @@ However, the full directory should be kept together because JULES requires addit
 
 ## Running the example
 
-Copy this directory into a working run directory:
+This is an older, extra example; the 1-hour tutorial uses KCL
+(`namelists/KCL_Default`, `namelists/KCL_USurf`). To copy it into
+`~/london_stjamespark` with the input paths written in, and run it:
 
 ```bash
-mkdir -p ~/my_first_run
-cp -r namelists/London_StJamesPark ~/my_first_run/namelists
-```
-
-Create the output directory:
-
-```bash
-mkdir -p ~/my_first_run/output
-```
-
-Then run JULES:
-
-```bash
-cd ~/my_first_run
-~/jules_build/build/bin/jules.exe namelists/
+DATA_DIR="$HOME/jules-tutorial-data"
+bash "$DATA_DIR/scripts/setup/get_run.sh" london
+cd ~/london_stjamespark
+~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
 ```
 
 ## Expected output

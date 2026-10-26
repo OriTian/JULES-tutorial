@@ -2,7 +2,8 @@
 
 A step-by-step lab for running JULES with the MORUSES urban scheme on a
 group EC2 instance — from first SSH connection through building JULES,
-running a real site, and plotting the output. No prior JULES experience
+running King's College London (KCL) with two urban descriptions, Default
+and U-Surf, and comparing their air temperature. No prior JULES experience
 assumed.
 
 Every command block below is complete and self-contained — copy the whole
@@ -31,11 +32,11 @@ Chapter 1        Connect            get onto the EC2 instance over SSH
 Chapter 2        Understand         the big picture before you type anything
 Chapters 3–9     Build              swap, compiler, Miniforge, NetCDF-Fortran,
                                     FCM, JULES source, compile jules.exe
-Chapters 10–12   Run                get a run directory, point it at the
-                                    example site's data, execute JULES
-Chapters 13–15   Check the output   confirm it ran, load it in Python, plot it
-Chapter 16       Your tasks         exercises — change a namelist, rerun,
-                                    compare
+Chapters 10–12   Run                get the data, copy Run 1 (KCL Default),
+                                    execute JULES
+Chapters 13–14   Check the output   confirm it ran, read and plot it in Python
+Chapters 15–16   Compare            Run 2 (KCL U-Surf), compare the 1.5 m air
+                                    temperature of the two runs
 Chapters 17–18   Reference          common-errors table + a final checklist —
                                     come back to these when something breaks,
                                     no need to read them in order
@@ -53,13 +54,13 @@ links to further down this same page):
 - [Chapter 7. Install FCM](#chapter-7-install-fcm)
 - [Chapter 8. Download JULES](#chapter-8-download-jules)
 - [Chapter 9. Build JULES](#chapter-9-build-jules)
-- [Chapter 10. Get a run directory](#chapter-10-get-a-run-directory)
-- [Chapter 11. Prepare the run directory](#chapter-11-prepare-the-run-directory)
+- [Chapter 10. Get the tutorial data](#chapter-10-get-the-tutorial-data)
+- [Chapter 11. Prepare Run 1 (KCL Default)](#chapter-11-prepare-run-1-kcl-default)
 - [Chapter 12. Run JULES](#chapter-12-run-jules)
 - [Chapter 13. Verify the output](#chapter-13-verify-the-output)
-- [Chapter 14. Read model output in Python](#chapter-14-read-model-output-in-python)
-- [Chapter 15. Plot air temperature](#chapter-15-plot-air-temperature)
-- [Chapter 16. Your tasks](#chapter-16-your-tasks)
+- [Chapter 14. Read and plot Run 1](#chapter-14-read-and-plot-run-1)
+- [Chapter 15. Run 2: KCL U-Surf](#chapter-15-run-2-kcl-u-surf)
+- [Chapter 16. Compare Default and U-Surf](#chapter-16-compare-default-and-u-surf)
 - [Chapter 17. Common errors](#chapter-17-common-errors)
 - [Chapter 18. Checklist](#chapter-18-checklist)
 
@@ -70,9 +71,9 @@ README:
 
 - [`scripts/setup/README.md`](scripts/setup/README.md) — Chapters 1–9's connect/build steps
 - [`scripts/run/README.md`](scripts/run/README.md) — Chapter 12's run step
-- [`scripts/postprocessing/README.md`](scripts/postprocessing/README.md) — Chapters 13–15's check/plot steps
+- [`scripts/postprocessing/README.md`](scripts/postprocessing/README.md) — more plotting helpers, beyond `quicklook.py` and `compare.py`
 - [`scripts/preprocessing/README.md`](scripts/preprocessing/README.md) — only if you're building a *new* site, not the tutorial's example
-- [`scripts/cleanup/README.md`](scripts/cleanup/README.md) — freeing disk space on the instance, any time
+- [`scripts/clearup/README.md`](scripts/clearup/README.md) — freeing disk space on the instance, any time
 
 Or [`scripts/README.md`](scripts/README.md) itself bundles all of the
 above into one page of ready-to-paste blocks, in order, with no
@@ -153,7 +154,7 @@ Warning: Permanently added 'ec2-18-130-30-147.eu-west-2.compute.amazonaws.com' (
 ```
 
 **Everything from here on happens inside this one SSH session** — no need
-to go back to your local machine until Chapter 14 (plotting).
+to go back to your local machine until Chapter 16 (downloading plots).
 
 ---
 
@@ -505,17 +506,26 @@ everything after this is per-run, not per-build.
 
 ---
 
-# Chapter 10. Get a run directory
+# Chapter 10. Get the tutorial data
+
+## Today's case: KCL, two runs
+
+The tutorial runs JULES at King's College London (KCL, central London)
+twice and compares the 1.5 m air temperature:
+
+```text
+Run 1   KCL Default   urban form from the empirical formulas (l_urban_empirical)
+Run 2   KCL U-Surf    urban form and materials from the U-Surf dataset
+```
+
+Both runs use the same ERA5 forcing, period, soil, non-urban parameters
+and output variables. Run 2 replaces the urban description and the
+settings that depend on it: the canyon/roof fractions, the forcing height
+above the displacement height, and the start state.
 
 ## Step 24. Download this tutorial's data
 
-Every JULES run needs a `namelists/` folder (43 small `.nml` config files)
-plus forcing and land-cover data. Rather than assembling all of that by
-hand, one script downloads a ready-made example site
-(`London_StJamesPark`) and wires the paths together automatically.
-
 ```bash
-RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
 TMP_TAR="/tmp/jules-tutorial-data.tar.gz"     # download archive only
 DATA_DIR="$HOME/jules-tutorial-data"          # unpacked data live in $HOME
 
@@ -525,7 +535,7 @@ tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
 ```
 
 ```text
-wget -O "$TMP_TAR"   download this tutorial repo as a .tar.gz archive
+wget -O "$TMP_TAR"         download this tutorial repo as a .tar.gz archive
 tar --strip-components=1   unpack it, dropping the repo-name folder level
 ```
 
@@ -539,102 +549,120 @@ tmpfs (capped at half the memory) and is emptied on reboot.
 Repository layout, once unpacked:
 
 ```text
-ancillary_data/   land-cover fraction file (.nc)
-forcing_data/     meteorological forcing file (.nc)
-namelists/        model configuration, one folder per site
-scripts/          setup, run and plotting helpers
+forcing_data/     ERA5 forcing for KCL, hourly, March 2011 – January 2014
+ancillary_data/   tile-fraction files, one for Default and one for U-Surf
+initial_state/    start states: the end of each configuration's 40-cycle spin-up
+namelists/        KCL_Default/, KCL_USurf/ (45 files each), London_StJamesPark/
+scripts/          get_run.sh, quicklook.py, compare.py, setup and cleanup helpers
 ```
 
 ---
 
-# Chapter 11. Prepare the run directory
+# Chapter 11. Prepare Run 1 (KCL Default)
 
-## Step 25–26. Copy the example site's config in
+## Step 25. Copy the run and write the paths
 
 ```bash
-mkdir -p "$RUN_DIR"
-cp -r "$DATA_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
-mkdir -p "$RUN_DIR/output"   # JULES does not create this itself
+DATA_DIR="$HOME/jules-tutorial-data"
+bash "$DATA_DIR/scripts/setup/get_run.sh" default
+cd ~/kcl_default
+ls output
 ```
+
+`get_run.sh default` copies `namelists/KCL_Default` into
+`~/kcl_default/namelists`, creates an empty `~/kcl_default/output`, and
+writes the absolute paths of the three input files into the namelists.
+It downloads the data itself if Step 24 was skipped.
+
+Expected:
 
 ```text
-London_StJamesPark
-      ↓  (copied)
-~/my_first_run/namelists
+Run directory ready: /home/ec2-user/kcl_default
+file='/home/ec2-user/jules-tutorial-data/forcing_data/UK-KingsCollege_era5_ml134_point_forcing_201103-201401.nc'
+file='/home/ec2-user/jules-tutorial-data/ancillary_data/UK-KingsCollege_default_frac.nc'
+file='/home/ec2-user/jules-tutorial-data/initial_state/UK-KingsCollege_default_spinup_end_20120401.nc'
+Namelist files: 45
 ```
 
-## Step 27. Point the namelists at the real data files
+and `ls output` prints nothing. To start again, `rm -rf ~/kcl_default` and
+rerun `get_run.sh`: it refuses to overwrite an existing run.
 
-The copied namelists reference the forcing and fraction files by path —
-those paths need to point at the files you just downloaded, not a
-placeholder. Two lines need patching:
+## Step 26. Look at the settings
+
+The directory holds 45 namelist files, including compatibility and
+look-alike files. Keep the tested directory together and focus on the
+seven files used today:
+
+| File | What it sets |
+|---|---|
+| `drive.nml` | forcing file, variables, `interp`, forcing height `z1_tq_in`/`z1_uv_in` |
+| `timesteps.nml` | run period, 30-minute timestep, spin-up (`max_spinup_cycles=0`) |
+| `initial_conditions.nml` | start state: the dump at the end of the spin-up |
+| `jules_surface_types.nml` | tile numbers: lake 6, soil 7, urban canyon 9, urban roof 10 |
+| `ancillaries.nml` | fraction file (`&jules_frac`) and urban materials (`&urban_properties`) |
+| `urban.nml` | `&jules_urban`: Default uses `l_urban_empirical=.true.` |
+| `output.nml` | 11 hourly variables in `output/kcl_default.hourly_output.nc` |
+
+Three fixed-name traps: JULES reads `&jules_initial` only from
+`initial_conditions.nml`, `&jules_time`/`&jules_spinup` only from
+`timesteps.nml`, and `&jules_frac`/`&urban_properties` only from
+`ancillaries.nml`. The look-alike files (`jules_initial.nml`,
+`jules_time.nml`, `jules_spinup.nml`, `jules_frac.nml`, `jules_nvegparm.nml`)
+are never opened.
 
 ```bash
-FRAC_FILE="$DATA_DIR/ancillary_data/London_StJamesPark_frac.nc"
-FORCING_FILE="$DATA_DIR/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc"
-sed -i "s|file='.*frac.*\.nc'|file='$FRAC_FILE'|" "$RUN_DIR/namelists/ancillaries.nml"
-sed -i "s|file='.*era5.*\.nc'|file='$FORCING_FILE'|" "$RUN_DIR/namelists/drive.nml"
+grep z1_ namelists/drive.nml           # 74.1389: forcing height above d
+grep main_run namelists/timesteps.nml  # 2012-04-01 to 2014-01-01
+FRAC=$(awk -F"'" '/_frac.nc/{print $2}' namelists/ancillaries.nml)
+ncdump -v frac "$FRAC"                 # canyon 0.58 + roof 0.21, lake 0.14, grass 0.04, trees 0.03
+cat namelists/output.nml
 ```
 
-> **Don't skip this step.** Without it, `ancillaries.nml`'s `&jules_frac`
-> block and `drive.nml`'s `&jules_drive` block still contain the
-> generic path the file was written with, and JULES fails at startup with
-> a file-not-found error the first time it tries to open the forcing file.
-
-Steps 25–27 in one go: `bash "$DATA_DIR/scripts/setup/get_run.sh"`.
-
-Verify the count (should be 44: 43 `.nml` files plus a README). Keep the
-tested directory together during the tutorial and edit only the files the
-tutorial asks you to:
-
-```bash
-ls "$RUN_DIR/namelists" | wc -l
-```
+`data_start`/`data_end` in `drive.nml` describe the forcing file, not the
+run: JULES does not read the time variable in the file, it gives the first
+record the time `data_start` and counts forward.
 
 ---
 
 # Chapter 12. Run JULES
 
-## Step 28. Start the model
+## Step 27. Start Run 1
 
 ```bash
-RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
-cd "$RUN_DIR"
-mkdir -p output
-${JULES_EXE:-$HOME/jules_build/build/bin/jules.exe} namelists/
+cd ~/kcl_default
+~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
+tail -n 3 run.log
+ls output
 ```
 
-This is safe to paste from anywhere in your home directory — it `cd`s into
-`RUN_DIR` itself first, rather than assuming you're already there.
+The only argument is the namelist folder. There is no job scheduler on
+EC2: you start `jules.exe` yourself. The run is 30720 half-hour steps
+(1 April 2012 to 1 January 2014); expect a minute or two.
 
 ## What happens internally
 
 ```text
 Read namelists
     ↓
-Read forcing
+Read forcing, fractions and the start state
     ↓
-Initialise state variables
+Time integration, 30-minute steps
     ↓
-Time integration
-    ↓
-Write NetCDF output
+Write NetCDF output and dump files
 ```
-
-No job scheduler needed — a single-point, few-month run finishes in well
-under an hour on this small instance, directly in your terminal.
 
 ## Success indicator
 
-The run prints progress and ends by closing its output files, with no
-`[FATAL ERROR]` line:
+No `[FATAL ERROR]` line, and the log ends by closing the output files:
 
 ```text
-[INFO] WRITE_DUMP: albsoil
-[INFO] file_ncdf_close: Closing file output/my_first_run.dump.20230801.0.nc
-[INFO] file_ncdf_close: Closing file /home/ec2-user/jules-tutorial-data/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc
-[INFO] file_ncdf_close: Closing file output/my_first_run.hourly_output.nc
+[INFO] file_ncdf_close: Closing file output/kcl_default.dump.20140101.0.nc
+[INFO] file_ncdf_close: Closing file /home/ec2-user/jules-tutorial-data/forcing_data/UK-KingsCollege_era5_ml134_point_forcing_201103-201401.nc
+[INFO] file_ncdf_close: Closing file output/kcl_default.hourly_output.nc
 ```
+
+This JULES version prints no "finished" message: the closed hourly output
+and the final dump are the sign that the run reached the end.
 
 **Worried about your SSH connection dropping mid-run?** Start it inside
 `tmux` so it keeps going even if you disconnect: `tmux new -s jules_run`,
@@ -645,23 +673,25 @@ reconnect later with `tmux attach -t jules_run`.
 
 # Chapter 13. Verify the output
 
-## Step 29. List the output files
+## Step 28. List the output files
 
 ```bash
 ls output
 ```
 
 ```text
-my_first_run.dump.20230301.0.nc  my_first_run.dump.20230801.0.nc  my_first_run.hourly_output.nc
+kcl_default.dump.20120401.0.nc  kcl_default.dump.20130101.0.nc
+kcl_default.dump.20140101.0.nc  kcl_default.hourly_output.nc
 ```
 
-The `dump.*` files are restart/state snapshots; `hourly_output.nc` is the
-one with the variables you actually asked for in `output.nml`.
+The `dump.*` files are snapshots of the model state: one at the start, one
+at each new year and one at the end. `hourly_output.nc` holds the
+variables listed in `output.nml`.
 
-## Step 30. Inspect its structure
+## Step 29. Inspect its structure
 
 ```bash
-ncdump -h output/my_first_run.hourly_output.nc
+ncdump -h output/kcl_default.hourly_output.nc
 ```
 
 Look for `dimensions`, `variables`, `units`, and `time` in the header —
@@ -669,121 +699,149 @@ this tells you what's inside without opening it in Python.
 
 ---
 
-# Chapter 14. Read model output in Python
+# Chapter 14. Read and plot Run 1
 
-## Step 31. Install the plotting stack
-
-```bash
-pip install --quiet matplotlib pandas netCDF4 xarray
-```
-
-`pip`, not `conda`/`mamba install` — see the callout in Chapter 6. Verified
-on this instance: conda's solver gets OOM-killed; pip's prebuilt wheels
-install cleanly.
-
-## Step 32. Open the file
-
-```python
-import xarray as xr
-ds = xr.open_dataset("output/my_first_run.hourly_output.nc")
-print(ds)
-```
-
-Look at the `Dimensions`, `Coordinates`, and `Data variables` sections of
-the printout to see what's available.
-
----
-
-# Chapter 15. Plot air temperature
-
-## Step 33. Plot `t1p5m_gb`
-
-```python
-(ds["t1p5m_gb"] - 273.15).plot()
-```
-
-```text
-t1p5m_gb   1.5m air temperature, gridbox mean (Kelvin in the file)
-- 273.15   convert Kelvin to Celsius before plotting
-```
-
-Or from the command line, without opening a Python shell, using the
-ready-made script in this repo:
-
-```bash
-python3 scripts/postprocessing/plot_quicklook.py output/my_first_run.hourly_output.nc --var t1p5m_gb --out quicklook.png
-```
-
-**Expected shape:** a wiggly line with a clear daily up-down cycle (warmer
-afternoons, cooler nights) over the run period — not a flat line or a
-single spike, which would signal a units or indexing mistake.
-
----
-
-# Chapter 16. Your tasks
-
-Use **AI** to help, and **save the prompts you used**.
-
-## Task 1 — Explore output variables
+## Step 30. Run the provided script
 
 ```bash
 source ~/miniforge3/bin/activate
-python3
+DATA_DIR="$HOME/jules-tutorial-data"
+python "$DATA_DIR/scripts/quicklook.py"
 ```
+
+`quicklook.py` works from any folder. It reads
+`~/kcl_default/output/kcl_default.hourly_output.nc`, prints the dataset and
+the number of time values, and saves `~/kcl_default/run1_t1p5m.png`.
+
+Expected: 11 variables plus `time_bounds`, then `time values: 15360`
+(each hourly value is the mean of two 30-minute steps).
+
+The key lines inside it:
 
 ```python
-import xarray as xr
-ds = xr.open_dataset("output/my_first_run.hourly_output.nc")
+ds = xr.open_dataset(f"{run}/output/kcl_default.hourly_output.nc")
+print(ds)                                  # variables, sizes, units
+t = ds["t1p5m_gb"].squeeze() - 273.15      # K -> °C; squeeze drops the 1 x 1 grid
 ```
-
-- **Q1.** How many variables are in the output file?
-- **Q2.** How many time steps (hours) are in the output?
-
-## Task 2 — Plot radiation components
-
-Plot and compare these three variables from the same file:
 
 ```text
-sw_down    lw_down    rad_net
+t1p5m_gb   1.5 m air temperature, gridbox mean (kelvin in the file)
+- 273.15   convert kelvin to °C before plotting
 ```
 
-## Task 3 — Modify urban emissivity
+**Expected plot:** two summers and one winter, monthly means from about
+3.7 °C (February–March 2013) to 20.0 °C (July 2013), with a daily cycle on
+every day. A curve around 270–300 means the kelvin conversion is missing.
 
-Edit `namelists/ancillaries.nml`'s `&urban_properties` block: change
-`emisw` and `emisr` from `0.90, 0.95` to `0.98, 0.98`.
+If `python` cannot find `xarray` or `netCDF4`:
+`pip install --quiet matplotlib pandas netCDF4 xarray` — `pip`, not
+`conda install`; see the callout in Chapter 6.
+
+---
+
+# Chapter 15. Run 2: KCL U-Surf
+
+## Step 31. Copy Run 2 and see what differs
+
+```bash
+DATA_DIR="$HOME/jules-tutorial-data"
+bash "$DATA_DIR/scripts/setup/get_run.sh" usurf
+
+cd ~
+diff -qr kcl_default/namelists kcl_usurf/namelists
+```
+
+`diff -qr` names the five files that differ:
+
+| File | Default | U-Surf |
+|---|---|---|
+| `urban.nml` | `l_urban_empirical=.true.` | `.false.`: use the values in `ancillaries.nml` |
+| `ancillaries.nml`, form | from the urban fraction 0.79: `hgt` 8.0 m, `hwr` 0.39, `wrr` 0.73 | KCL: `hgt` 27.5 m, `hwr` 1.50, `wrr` 0.50 |
+| `ancillaries.nml`, materials | albedo 0.25, 0.08; emissivity 0.90, 0.95 | albedo 0.12, 0.10; emissivity 0.97, 0.97 |
+| `ancillaries.nml`, frac file | canyon 0.58, roof 0.21 | canyon 0.39, roof 0.40 |
+| `drive.nml` | `z1_tq_in = z1_uv_in = 74.1389` | `57.1836` |
+| `initial_conditions.nml` | Default end-of-spin-up state | U-Surf end-of-spin-up state |
+| `output.nml` | `run_id='kcl_default'` | `run_id='kcl_usurf'` |
+
+The fractions differ because the canyon/roof split follows each
+configuration's `wrr` (same urban total, 0.79); the frac files were
+precomputed, and JULES reads canyon and roof directly. The forcing height
+differs because `z1` is measured above the displacement height `d`, which
+depends on the buildings: 78.2 − 4.1 = 74.1 m for Default and
+78.2 − 21.0 = 57.2 m for U-Surf. The start state differs because each
+configuration ran its own spin-up.
+
+## Step 32. Run it
+
+```bash
+cd ~/kcl_usurf
+~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
+ls output
+```
+
+Expected: `kcl_usurf.hourly_output.nc` and three dump files, no
+`[FATAL ERROR]`.
+
+---
+
+# Chapter 16. Compare Default and U-Surf
+
+## Step 33. Run the comparison
+
+```bash
+DATA_DIR="$HOME/jules-tutorial-data"
+python "$DATA_DIR/scripts/compare.py"
+```
+
+Expected:
 
 ```text
-&urban_properties
-  nvars=7
-  use_file=7*.false.
-  var='wrr','hwr','hgt','albwl','albrd','emisw','emisr'
-  const_val=0, 0, 0, 0.25, 0.08, 0.98, 0.98
-/
+U-Surf - Default, all hours: -0.21 K
+  daytime -0.27 K, night-time -0.14 K
+  U-Surf is cooler in 98 % of hours
+saved /home/ec2-user/kcl_default/compare.png
 ```
 
-Re-run the model (Chapter 12) and re-plot temperature and radiation.
+`compare.png` has three panels: (a) the daily mean of both runs, (b) the
+hourly and daily U-Surf − Default difference with its mean, and (c) the
+mean difference by hour of day (largest, about −0.34 K, around 13–14 UTC).
 
-**Before you run it — predict:** with urban emissivity raised from 0.95 to
-0.98, do you expect:
+The key lines inside it:
 
-```text
-A) Higher roof temperature
-B) Lower roof temperature
-C) No change
+```python
+td = d["t1p5m_gb"].squeeze() - 273.15   # Run 1
+tu = u["t1p5m_gb"].squeeze() - 273.15   # Run 2
+diff = tu - td                          # U-Surf − Default, every hour
+by_hour = diff.groupby("time.hour").mean()
 ```
+
+This is a model-to-model comparison; observations are not evaluated here.
 
 ## Download your plots
 
 From your **local machine**:
 
 ```bash
-scp -i jules.pem ec2-user@<your-ec2-ip>:~/my_first_run/*.png ~/Downloads/
+scp -i jules.pem ec2-user@<your-ec2-ip>:~/kcl_default/*.png ~/Downloads/
 ```
 
 Run this on your laptop's terminal, not inside the SSH session — it's
 copying files *from* EC2 *to* your machine.
 
-You may do further experiments beyond these three tasks.
+## After class
+
+- Add `'latent_heat'` (gridbox latent heat flux, W m⁻²) to `var` in
+  `output.nml`, and change `nvars`, `output_type` and `var_name` together
+  to 12; rerun and check that it is close to `fqw_gb` × 2.5 × 10⁶.
+- Plot other variables (`ftl_gb`, `tstar_gb`, `rad_net`) for both runs.
+- Compare both runs with the KCL tower measurements.
+- Run the 40-cycle spin-up yourself: in `timesteps.nml`, set the
+  `&jules_spinup` block back to a spin-up period and cycle count, and start
+  from a constant initial state in `initial_conditions.nml`.
+- Your own site: U-Surf values in `urban.nml`/`ancillaries.nml` and a frac
+  file for that site.
+
+Use **AI** to help, and **save the prompts you used**.
 
 ---
 
@@ -796,7 +854,11 @@ You may do further experiments beyond these three tasks.
 | `fcm: command not found` | FCM not on `PATH` | `export PATH=$HOME/fcm/bin:$PATH` |
 | build fails with an MPI-interface compiler error | missing `JULES_FFLAGS_EXTRA` | re-export the full variable list in Chapter 9, Step 18–21, before rebuilding |
 | `nf-config: command not found` | NetCDF-Fortran not installed / conda not activated | `source ~/miniforge3/bin/activate`, then Chapter 6 |
-| `Cannot open file '.../ancillaries.nml'`-adjacent file errors at startup | Chapter 11 Step 27 (the `sed` path patch) was skipped | re-run that step, or delete `$RUN_DIR` and redo Chapter 10–11 |
+| `[FATAL ERROR]` naming a file at startup | wrong path in a namelist | `ls` the path named in the message; or `rm -rf ~/kcl_default` and rerun `get_run.sh default` (Chapter 11) |
+| `get_run.sh`: `already exists` | the run directory is already there | `rm -rf ~/kcl_default` (or `~/kcl_usurf`) and rerun |
+| run is fine, but an edit did nothing | edited a file JULES never opens | edit the fixed-name file (Chapter 11, Step 26) |
+| `ModuleNotFoundError: xarray` | environment not loaded | `source ~/miniforge3/bin/activate` |
+| temperatures around 290 | still in kelvin | subtract 273.15 |
 | conda hangs or gets killed while installing | too many packages requested via `conda install` at once on a small instance | only ever `conda install` `netcdf-fortran` alone; get Python plotting packages via `pip` |
 | out-of-memory during compile | no swap configured | Chapter 3 |
 
@@ -819,10 +881,12 @@ After completing this lab, you should be able to:
 - [ ] Install NetCDF-Fortran without triggering the conda OOM issue
 - [ ] Install FCM and build JULES from source
 - [ ] Explain what each `JULES_*` build environment variable does
-- [ ] Prepare a run directory for a new site, including the `sed` path patch
-- [ ] Run the London St James's Park example end-to-end
+- [ ] Say what a KCL run needs: forcing, tile fractions, an urban description, a start state
+- [ ] Name the seven main namelists and the fixed-name traps
+- [ ] Start JULES on EC2 and tell from the log and the dump files that it worked
 - [ ] Inspect NetCDF output with `ncdump` and `xarray`
 - [ ] Plot `t1p5m_gb` and get a sensible-looking diurnal cycle
+- [ ] List what differs between KCL Default and U-Surf, and compare their 1.5 m air temperature
 - [ ] Diagnose the common failures in Chapter 17 without help
 
 ---
@@ -830,12 +894,15 @@ After completing this lab, you should be able to:
 ## Where the rest of this repo lives
 
 ```text
-scripts/README.md        the same commands above, as copy-paste blocks in order
-scripts/setup/           setup_ec2.sh, build_jules.sh
+scripts/README.md         the same commands above, as copy-paste blocks in order
+scripts/setup/            setup_ec2.sh, build_jules.sh, get_run.sh
+scripts/quicklook.py      Run 1 plot (Chapter 14)
+scripts/compare.py        Default vs U-Surf comparison (Chapter 16)
 scripts/run/              run_jules.sh
-scripts/postprocessing/   plot_quicklook.py, download_era5.py
-docs/tutorial.md          longer-form walkthrough of every namelist you might edit
-docs/running_on_ec2.md    this same lab, with every script fully inlined
+scripts/postprocessing/   plot_quicklook.py, read_tile_output.py
+scripts/preprocessing/    build_frac_file.py, prepare_era5_point_forcing.py
+scripts/clearup/          clearup_ec2.sh
+namelists/README.md       what a namelist is, and the seven files worth understanding
 ```
 
 Full JULES documentation: [jules-lsm.github.io](https://jules-lsm.github.io/)

@@ -28,7 +28,7 @@ like a plausible temperature curve (not all zeros, not `NaN`, not a flat
 line), the run worked.
 
 ```bash
-python plot_quicklook.py output/my_run.hourly_output.nc \
+python plot_quicklook.py output/kcl_default.hourly_output.nc \
     --var t1p5m_gb --out quicklook.png
 ```
 
@@ -42,58 +42,56 @@ Kelvin variables (`t1p5m_gb`, `tstar_gb`, `t1p5m`, `tstar`) are
 automatically converted to Celsius for the plot — everything else is
 plotted in whatever units JULES wrote it in.
 
-## `read_tile_output.py` — "what's the actual urban temperature?"
+## `read_tile_output.py` — canyon and roof, one tile at a time
 
-`_gb` variables (e.g. `t1p5m_gb`) are already a **gridbox mean** — JULES
-has blended together all 10 tile types (vegetation, lake, soil, ice,
-canyon, roof) into one number, weighted by how much of the point each tile
-covers. That's usually *not* what you want for an urban study: a point
-that's 40% urban and 60% grass will report a gridbox mean pulled a long
-way toward "grass," diluting the very signal you're trying to see.
+`_gb` variables (e.g. `t1p5m_gb`, `tstar_gb`) are **gridbox means** —
+JULES has blended all 10 tile types (vegetation, lake, soil, ice, canyon,
+roof) into one number, weighted by how much of the point each tile covers.
 
-This script instead reads the **per-tile** output (`t1p5m`, `tstar` —
-no `_gb` suffix, one value per tile) and recombines just the two urban
-tiles:
+This script reads the **per-tile** output (`tstar`, `t1p5m` — no `_gb`
+suffix, one value per tile) and returns the canyon and roof tiles
+separately. For the surface temperature `tstar` it also returns a
+canyon+roof mean weighted by the two fractions:
 
 ```text
-T_urban = (frac_canyon * T_canyon + frac_roof * T_roof) / (frac_canyon + frac_roof)
+tstar_urban_only = (frac_canyon * tstar_canyon + frac_roof * tstar_roof) / (frac_canyon + frac_roof)
 ```
 
-i.e. an urban-only average, re-normalised so canyon+roof adds up to 1.0
-instead of diluting through soil/grass/lake/ice.
+It does **not** do this for `t1p5m`: canyon and roof 1.5 m temperatures
+are kept apart, because a fraction-weighted mean of them is not an urban
+1.5 m air temperature. Use `t1p5m_gb`, or each tile on its own.
 
 Unlike `plot_quicklook.py`, this one isn't a ready-to-run command-line
 tool — it's a small function (`load_output(...)`) you call with four
-numbers specific to your run. Open the file, edit the example at the
-bottom, and run it:
+numbers specific to your run. The example at the bottom is set for KCL
+Default; run it from `~/kcl_default`:
 
 ```python
 data = load_output(
-    "output/my_run.hourly_output.nc",
-    canyon_idx=8, roof_idx=9,          # from THIS run's jules_surface_types.nml
-    canyon_frac=0.36, roof_frac=0.41,  # from THIS run's frac.nc
+    "output/kcl_default.hourly_output.nc",
+    canyon_idx=8, roof_idx=9,               # tiles 9 and 10 in jules_surface_types.nml
+    canyon_frac=0.5782, roof_frac=0.2118,   # KCL Default frac file
 )
 print(data["tstar_urban_only"].mean())
 ```
 
 ```bash
-python read_tile_output.py
+cd ~/kcl_default && python ~/jules-tutorial-data/scripts/postprocessing/read_tile_output.py
 ```
 
-**Before running this on anything other than the tutorial's example
-site**, check that run's own `jules_surface_types.nml` for `canyon_idx`/
-`roof_idx`, and `frac.nc` for `canyon_frac`/`roof_frac` — the script needs
-these four numbers, and **tile order is not fixed across run
-directories** (see the tile-order warning in the project's `CLAUDE.md` if
-you're working from JASMIN). Using the wrong index silently reads the
-wrong tile, with no error.
+**Before running this on any other run**, check that run's own
+`jules_surface_types.nml` for `canyon_idx`/`roof_idx` (Python counts from
+0, so tile 9 is index 8), and its frac file for `canyon_frac`/`roof_frac`
+(KCL U-Surf: 0.3918 and 0.3982) — **tile order is not fixed across run
+directories**, and the wrong index silently reads the wrong tile, with no
+error.
 
 ## Which one do I run first?
 
 ```text
 1. plot_quicklook.py    every time, right after a run -- did it work at all?
-2. read_tile_output.py  only once you specifically want the urban-only
-                         (canyon+roof) temperature, not the gridbox mean
+2. read_tile_output.py  only once you want the canyon and roof tiles
+                         separately, not the gridbox mean
 ```
 
 ---

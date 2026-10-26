@@ -10,7 +10,7 @@ for the `.pem` key and the instance's public DNS name.
 1. Connect          SSH into the instance
 2. Set up           install everything JULES needs to compile
 3. Build             compile jules.exe (~1 minute)
-4. Get a run dir     fetch the tutorial's example namelists + data
+4. Get a run dir     fetch the tutorial's KCL namelists + data
 ```
 
 Each one depends on the last — don't skip ahead. Steps 2 and 3 are
@@ -141,40 +141,33 @@ error, re-check that `setup_ec2.sh` completed without errors first.
 ## 4. Get a run directory
 
 ```bash
-cat > ~/get_run_directory.sh << 'EOF'
-# ...paste get_run_directory.sh here...
-EOF
-bash ~/get_run_directory.sh
+DATA_DIR="$HOME/jules-tutorial-data"
+bash "$DATA_DIR/scripts/setup/get_run.sh" default    # Run 1 -> ~/kcl_default
+bash "$DATA_DIR/scripts/setup/get_run.sh" usurf      # Run 2 -> ~/kcl_usurf
 ```
 
 A "run directory" is just a folder containing everything one JULES
 simulation needs: a `namelists/` folder (config) and an empty `output/`
 folder (JULES writes results there, but doesn't create the folder itself).
-This script:
+`get_run.sh`:
 
 ```text
-1. downloads this whole tutorial repo (a wget of a GitHub archive, not a
-   git clone -- no git metadata needed, just the files)
-2. copies the London_StJamesPark example's 43 namelist files into your
-   new run directory
-3. finds the tile-fraction (*frac*.nc) and weather (*era5*.nc) files it
-   just downloaded, and rewrites the placeholder file= paths inside
-   ancillaries.nml/drive.nml to point at wherever they actually landed
+1. downloads this whole tutorial repo into ~/jules-tutorial-data if it is
+   not there yet (a wget of a GitHub archive, not a git clone)
+2. copies namelists/KCL_Default (or KCL_USurf) into ~/kcl_default
+   (or ~/kcl_usurf) and creates an empty output/
+3. replaces the placeholder file='/path/to/...' paths in drive.nml,
+   ancillaries.nml and initial_conditions.nml with the absolute paths of
+   the forcing, fraction and start-state files, and prints them
 ```
 
 That last step matters: **without it, JULES fails at startup** with a
-file-not-found error, because the namelists as copied still contain the
-generic path they were written with, not this instance's actual paths.
+file-not-found error. `get_run.sh london` sets up the older London
+St James's Park example in `~/london_stjamespark` the same way.
 
-Set `RUN_DIR` to change the destination (default `~/my_first_run`):
-
-```bash
-RUN_DIR=~/my_second_run bash ~/get_run_directory.sh
-```
-
-**Success indicator**: the script prints a namelist file count that should
-read 44 (43 .nml files plus a README). If it's lower, the download or copy step silently failed
-partway through.
+**Success indicator**: three `file='/home/ec2-user/jules-tutorial-data/...'`
+lines and `Namelist files: 45`. It refuses to overwrite an existing run
+directory: `rm -rf ~/kcl_default` first to start again.
 
 ## What's next
 

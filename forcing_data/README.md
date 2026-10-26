@@ -1,18 +1,27 @@
-# Example tile-fraction data
+# Forcing data
 
-`London_StJamesPark_frac.nc` — real land-cover tile fractions for
-London_StJamesPark (lat 51.5081, lon -0.1338), extracted from the UKV
-10-tile fraction ancillary at the nearest grid cell. Tile order matches
-`namelists_templates/urban_default/jules_surface_types.nml`
-(1–5 PFT, 6 lake, 7 bare soil, 8 ice, 9 urban_canyon, 10 urban_roof):
+## `UK-KingsCollege_era5_ml134_point_forcing_201103-201401.nc` (tutorial)
 
+Hourly ERA5 forcing for King's College London (KCL), 1 March 2011 to
+31 January 2014 (25632 hours), interpolated to the KCL point:
+
+```text
+Tair, Qair, Wind   ERA5 model level 134, about 78 m above the ground at KCL (instantaneous)
+Pstar              surface pressure (instantaneous)
+SwDown, LwDown,    mean over the hour ENDING at each time stamp
+Precip
 ```
-0.0, 0.0, 0.0377, 0.0, 0.0, 0.0083, 0.0137, 0.0, 0.2052, 0.7351
-```
 
-canyon=0.2052, roof=0.7351 — 94% of this point is "urban," among the
-highest urban fractions in the group's labmate9 site set.
+`drive.nml` reads it with `interp='nb','nb','i','i','i','nb','i'`
+(radiation and rain `nb`, the rest `i`) and `data_start='2011-03-01 00:00:00'`,
+`data_end='2014-02-01 00:00:00'`. JULES does not read the time variable:
+it gives the first record the time `data_start` and counts forward, so
+`data_start` must be the time of the first record.
 
-Committed directly (only ~8KB) so the tutorial works with **no
-`build_frac_file.py` step needed** — just point `ancillaries.nml`'s
-`&jules_frac` block at this file and go.
+`z1_tq_in`/`z1_uv_in` are the forcing height above the displacement height
+`d`: 74.1389 m for Default, 57.1836 m for U-Surf.
+
+## `London_StJamesPark_era5_2022_10-2023_12.nc` (older example)
+
+Hourly ERA5 forcing for London St James's Park, October 2022 to
+December 2023; used by `namelists/London_StJamesPark`.

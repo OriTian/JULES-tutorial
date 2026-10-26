@@ -1,9 +1,9 @@
 # Preprocessing — a beginner's guide
 
 You only need this folder for **one reason**: running JULES somewhere
-other than the tutorial's example site (London St James's Park). If
-London is fine for now, skip this whole folder — `ancillary_data/` and
-`forcing_data/` already have everything the example needs.
+other than the tutorial's site (King's College London, KCL). If KCL is
+fine for now, skip this whole folder — `forcing_data/`, `ancillary_data/`
+and `initial_state/` already have everything the tutorial needs.
 
 ## What JULES actually needs, in plain terms
 

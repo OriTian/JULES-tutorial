@@ -7,17 +7,18 @@ them in this order:
 
 1. **`setup/README.md`** first — explains the EC2 build environment, why
    each package/env-var is needed, and what `setup_ec2.sh`,
-   `build_jules.sh`, and `get_run_directory.sh` each do.
+   `build_jules.sh`, and `get_run.sh` each do.
 2. **`run/README.md`** next — explains `run_jules.sh`, i.e. actually
    running the model once you have a build and a run directory.
-3. **`postprocessing/README.md`** next — explains `plot_quicklook.py` and
-   `read_tile_output.py`, the sanity-check plots you make once a run has
-   finished.
+3. **`quicklook.py`** and **`compare.py`** (in this folder) — the Run 1
+   plot and the Default vs U-Surf comparison; **`postprocessing/README.md`**
+   explains two more general helpers, `plot_quicklook.py` and
+   `read_tile_output.py`.
 4. **`preprocessing/`** last, and only if you need it — `build_frac_file.py`
    and `download_era5.py` build the tile-fraction and forcing inputs for a
-   *new* site. Skip this on a first pass; the tutorial's example site
-   (London_StJamesPark) already ships with these files pre-built in
-   `ancillary_data/` and `forcing_data/`.
+   *new* site. Skip this on a first pass; the tutorial's site (KCL)
+   already ships with these files pre-built in `forcing_data/`,
+   `ancillary_data/` and `initial_state/`.
 
 Once you've read those and understand what each step does, come back to
 **this file** — it's the fast path: the same four steps (build,
@@ -104,115 +105,32 @@ EOF
 bash ~/build_jules.sh
 ```
 
-## 3. Get a run directory
+## 3. Get the two KCL run directories
 
 ```bash
-cat > ~/get_run_directory.sh << 'EOF'
-#!/bin/bash
-# Sets up a run directory using the tutorial's example site
-# (London_StJamesPark) namelists, forcing, and tile-fraction data.
-# Self-contained -- downloads what it needs via wget, no git clone of this
-# tutorial repo required. Run after build_jules.sh.
-set -e
-
-RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
-TMP_TAR="/tmp/jules-tutorial-data.tar.gz"     # download archive only
-DATA_DIR="$HOME/jules-tutorial-data"          # unpacked data live in $HOME
-
-wget -q -O "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/refs/heads/main.tar.gz
-rm -rf "$DATA_DIR" && mkdir -p "$DATA_DIR"
-tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
-
-mkdir -p "$RUN_DIR"
-cp -r "$DATA_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
-mkdir -p "$RUN_DIR/output"   # JULES does not create this itself
-
-FRAC_FILE="$DATA_DIR/ancillary_data/London_StJamesPark_frac.nc"
-FORCING_FILE="$DATA_DIR/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc"
-sed -i "s|file='.*frac.*\.nc'|file='$FRAC_FILE'|" "$RUN_DIR/namelists/ancillaries.nml"
-sed -i "s|file='.*era5.*\.nc'|file='$FORCING_FILE'|" "$RUN_DIR/namelists/drive.nml"
-
-echo "Run directory ready: $RUN_DIR"
-echo "Namelist file count (should be 44: 43 .nml + README):"
-ls "$RUN_DIR/namelists" | wc -l
-EOF
-bash ~/get_run_directory.sh
+DATA_DIR="$HOME/jules-tutorial-data"
+bash "$DATA_DIR/scripts/setup/get_run.sh" default    # Run 1 -> ~/kcl_default
+bash "$DATA_DIR/scripts/setup/get_run.sh" usurf      # Run 2 -> ~/kcl_usurf
+diff -qr ~/kcl_default/namelists ~/kcl_usurf/namelists
 ```
+
+`get_run.sh` downloads this repo into `~/jules-tutorial-data` the first
+time; see `setup/get_run.sh` for what it does.
 
 ## 4. Run JULES
 
 ```bash
-cat > ~/run_jules.sh << 'EOF'
-#!/bin/bash
-# Run JULES -- no scheduler needed, a single-point/few-month run finishes
-# in minutes. Safe to run from anywhere -- cds into RUN_DIR itself, does
-# not rely on you having cd'd there first.
-set -e
-
-RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
-cd "$RUN_DIR"
-mkdir -p output   # JULES does not create this itself
-${JULES_EXE:-$HOME/jules_build/build/bin/jules.exe} namelists/
-EOF
-bash ~/run_jules.sh
+cd ~/kcl_default && ~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
+cd ~/kcl_usurf   && ~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
 ```
 
-## 5. Plot a quicklook
+## 5. Plot and compare
 
 ```bash
-cat > ~/plot_quicklook.py << 'EOF'
-"""
-Quick single-variable timeseries plot from a JULES output file -- sanity
-check that a run produced sensible-looking output before deeper analysis.
-
-Usage:
-  python plot_quicklook.py output/my_run.hourly_output.nc --var t1p5m_gb --out quicklook.png
-"""
-import argparse
-
-import matplotlib
-
-matplotlib.use("Agg")  # no display on a headless machine (e.g. EC2)
-import matplotlib.pyplot as plt
-import netCDF4 as nc
-import pandas as pd
-
-KELVIN_VARS = {"t1p5m_gb", "tstar_gb", "t1p5m", "tstar"}
-
-
-def plot_quicklook(nc_path, var, out_path):
-    ds = nc.Dataset(nc_path)
-    t = pd.to_datetime(
-        nc.num2date(
-            ds.variables["time"][:],
-            ds.variables["time"].units,
-            only_use_cftime_datetimes=False,
-        )
-    )
-    values = ds.variables[var][:, 0, 0]
-    ylabel = var
-    if var in KELVIN_VARS:
-        values = values - 273.15
-        ylabel = f"{var} (\N{DEGREE SIGN}C)"
-
-    plt.figure(figsize=(10, 4))
-    plt.plot(t, values)
-    plt.ylabel(ylabel)
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=120)
-    print(f"Saved: {out_path}")
-
-
-if __name__ == "__main__":
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("nc_path", help="JULES output NetCDF file")
-    p.add_argument("--var", default="t1p5m_gb", help="Variable to plot (default: t1p5m_gb)")
-    p.add_argument("--out", default="quicklook.png", help="Output PNG path")
-    args = p.parse_args()
-    plot_quicklook(args.nc_path, args.var, args.out)
-EOF
 source ~/miniforge3/bin/activate
-python3 ~/plot_quicklook.py ~/my_first_run/output/*.hourly_output.nc --var t1p5m_gb --out ~/my_first_run/quicklook.png
+DATA_DIR="$HOME/jules-tutorial-data"
+python "$DATA_DIR/scripts/quicklook.py"   # -> ~/kcl_default/run1_t1p5m.png
+python "$DATA_DIR/scripts/compare.py"     # -> ~/kcl_default/compare.png
 ```
 
 See `setup/README.md`, `run/README.md`, `postprocessing/README.md` for

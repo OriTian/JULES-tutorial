@@ -14,8 +14,8 @@ script will fail immediately:
 There's no scheduler, no queue, nothing to submit — `jules.exe` is just an
 ordinary program. You point it at a folder full of `.nml` files, it reads
 them, simulates the period they describe, and writes NetCDF files into
-`output/`, then exits. A single-point, few-month run like the tutorial's
-finishes in well under a minute.
+`output/`, then exits. The tutorial's single-point KCL run (21 months in
+30-minute steps) takes a minute or two.
 
 ```text
 jules.exe  +  namelists/  ->  reads every .nml file in the folder
@@ -39,12 +39,12 @@ it. Two environment variables let you point it elsewhere without editing
 the script:
 
 ```text
-RUN_DIR      which run directory to use      (default: ~/my_first_run)
+RUN_DIR      which run directory to use      (default: ~/kcl_default)
 JULES_EXE    which jules.exe to use          (default: ~/jules_build/build/bin/jules.exe)
 ```
 
 ```bash
-RUN_DIR=~/my_second_run bash ~/run_jules.sh
+RUN_DIR=~/kcl_usurf bash ~/run_jules.sh
 ```
 
 ## The manual way, one command at a time
@@ -53,23 +53,24 @@ If you'd rather see each step (or the script fails and you want to debug
 by hand), this is exactly what it does underneath:
 
 ```bash
-cd my_run_directory/
+cd ~/kcl_default
 mkdir -p output              # JULES does not create this itself --
                               # it errors out if the folder is missing
-~/jules_build/build/bin/jules.exe namelists/
+~/jules_build/build/bin/jules.exe namelists/ 2>&1 | tee run.log
 ```
 
 ## How do I know it worked?
 
-No fancy success message — if it just returns to your prompt with no
-error, it worked. Check for output files:
+No fancy success message — if there is no `[FATAL ERROR]` line and the
+log ends by closing `output/kcl_default.hourly_output.nc`, it worked.
+Check for output files:
 
 ```bash
 ls output/
 ```
 
 You should see one or more `.nc` files (named after `output.nml`'s
-`run_id`/`profile` settings, e.g. `my_run.hourly_output.nc`). If `output/`
+`run_id`/`profile` settings, e.g. `kcl_default.hourly_output.nc`). If `output/`
 is empty or you got a Fortran error instead, see the "Common errors" table
 in the main [`README.md`](../../README.md#chapter-17-common-errors).
 
