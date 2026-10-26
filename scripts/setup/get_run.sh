@@ -35,7 +35,7 @@ esac
 if [ "$CASE" = london ]; then RUN_DIR="$HOME/london_stjamespark"; else RUN_DIR="$HOME/kcl_$CASE"; fi
 
 if [ ! -d "$DATA_DIR/namelists/$NML" ]; then
-  wget -q -O "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/refs/heads/main.tar.gz
+  curl -fsSL -o "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/main.tar.gz
   mkdir -p "$DATA_DIR"
   tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
 fi

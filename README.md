@@ -11,6 +11,35 @@ block, paste it into the EC2 terminal, done. The one exception is JULES's
 own source code, fetched with `git clone` in Chapter 8 — that's a real
 external dependency, not part of this repo.
 
+## Quick start: a new EC2 instance
+
+Every tutorial instance starts empty. Log in (Chapter 1), then paste this
+block once per instance — if two of you share an instance, only one of
+you runs it:
+
+```bash
+curl -fsSL -o /tmp/jules-tutorial-data.tar.gz \
+  https://github.com/OriTian/JULES-tutorial/archive/main.tar.gz
+mkdir -p ~/jules-tutorial-data
+tar -xzf /tmp/jules-tutorial-data.tar.gz -C ~/jules-tutorial-data --strip-components=1
+nohup bash ~/jules-tutorial-data/scripts/setup/install.sh > ~/install.log 2>&1 &
+```
+
+The first three lines download this repo into `~/jules-tutorial-data`.
+`install.sh` then does all of Chapters 3–9 (swap, compiler, Miniforge +
+NetCDF-Fortran, FCM, JULES source, Python packages, compile `jules.exe`)
+in the background, so it keeps going if your SSH connection drops. Check
+on it with:
+
+```bash
+tail -n 3 ~/install.log
+```
+
+It is finished when the last line reads `INSTALL DONE in … min`. If it
+reads `INSTALL FAILED`, look at the lines above it, then start the same
+`nohup` line again: finished steps are skipped. Then go on with
+Chapter 11.
+
 ---
 
 ## How to read this — a beginner's guide
@@ -69,7 +98,7 @@ file is for), the actual copy-paste commands also live in the `scripts/`
 folder, one subfolder per group above, each with its own beginner-friendly
 README:
 
-- [`scripts/setup/README.md`](scripts/setup/README.md) — Chapters 1–9's connect/build steps
+- [`scripts/setup/README.md`](scripts/setup/README.md) — Chapters 1–9's connect/build steps, and `install.sh`
 - [`scripts/run/README.md`](scripts/run/README.md) — Chapter 12's run step
 - [`scripts/postprocessing/README.md`](scripts/postprocessing/README.md) — more plotting helpers, beyond `quicklook.py` and `compare.py`
 - [`scripts/preprocessing/README.md`](scripts/preprocessing/README.md) — only if you're building a *new* site, not the tutorial's example
@@ -216,6 +245,10 @@ code again.
 ---
 
 # Chapter 3. Prepare swap memory
+
+Chapters 3–9 explain, step by step, what `scripts/setup/install.sh` does
+in one go (see the Quick start at the top). Read them to understand the
+setup, or to repair a step by hand.
 
 ## Why
 
@@ -525,21 +558,23 @@ above the displacement height, and the start state.
 
 ## Step 24. Download this tutorial's data
 
+Already done if you used the Quick start at the top. Otherwise:
+
 ```bash
 TMP_TAR="/tmp/jules-tutorial-data.tar.gz"     # download archive only
 DATA_DIR="$HOME/jules-tutorial-data"          # unpacked data live in $HOME
 
-wget -q -O "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/refs/heads/main.tar.gz
+curl -fsSL -o "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/main.tar.gz
 rm -rf "$DATA_DIR" && mkdir -p "$DATA_DIR"
 tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
 ```
 
 ```text
-wget -O "$TMP_TAR"         download this tutorial repo as a .tar.gz archive
+curl -fsSL -o "$TMP_TAR"   download this tutorial repo as a .tar.gz archive
 tar --strip-components=1   unpack it, dropping the repo-name folder level
 ```
 
-This downloads a snapshot via `wget` (not `git clone`) — no repo history,
+This downloads a snapshot via `curl` (not `git clone`) — no repo history,
 no git metadata, just the files this tutorial needs.
 
 Only the download archive goes in `/tmp`. The unpacked data live in
@@ -895,7 +930,7 @@ After completing this lab, you should be able to:
 
 ```text
 scripts/README.md         the same commands above, as copy-paste blocks in order
-scripts/setup/            setup_ec2.sh, build_jules.sh, get_run.sh
+scripts/setup/            install.sh (= setup_ec2.sh + build_jules.sh), get_run.sh
 scripts/quicklook.py      Run 1 plot (Chapter 14)
 scripts/compare.py        Default vs U-Surf comparison (Chapter 16)
 scripts/run/              run_jules.sh

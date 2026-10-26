@@ -17,6 +17,20 @@ Each one depends on the last — don't skip ahead. Steps 2 and 3 are
 one-time (re-running them just confirms nothing's missing); step 4 you
 might redo for a different site later.
 
+## Steps 2 and 3 in one go: `install.sh`
+
+On a new instance, after downloading this repo into `~/jules-tutorial-data`
+(main README, Quick start):
+
+```bash
+nohup bash ~/jules-tutorial-data/scripts/setup/install.sh > ~/install.log 2>&1 &
+tail -n 3 ~/install.log     # finished when the last line reads INSTALL DONE
+```
+
+`install.sh` runs `setup_ec2.sh` and then `build_jules.sh`, and checks the
+Python packages. `nohup ... &` keeps it running if the SSH connection
+drops. The sections below explain each step.
+
 ## 1. Connect
 
 An EC2 instance is just a remote Linux computer. You reach it over SSH
@@ -153,7 +167,7 @@ folder (JULES writes results there, but doesn't create the folder itself).
 
 ```text
 1. downloads this whole tutorial repo into ~/jules-tutorial-data if it is
-   not there yet (a wget of a GitHub archive, not a git clone)
+   not there yet (a curl download of a GitHub archive, not a git clone)
 2. copies namelists/KCL_Default (or KCL_USurf) into ~/kcl_default
    (or ~/kcl_usurf) and creates an empty output/
 3. replaces the placeholder file='/path/to/...' paths in drive.nml,
