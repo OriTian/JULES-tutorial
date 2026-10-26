@@ -1,9 +1,8 @@
 #!/bin/bash
 # Frees disk space on the group EC2 instance by removing build artifacts,
 # run outputs, and temp download data. Safe to re-run at any time -- these
-# are only regenerated (by setup_ec2.sh / build_jules.sh / get_run_directory.sh
-# / run_jules.sh), never hand-edited, so nothing here is unique or backed up
-# anywhere else.
+# are only regenerated (by install.sh / get_run.sh / jules.exe), never
+# hand-edited. Copy your plots to your laptop first: they are deleted too.
 #
 # Default: "soft" clean -- removes run outputs and build artifacts, keeps
 # the installed toolchain (Miniforge, FCM, JULES source) so the next build
@@ -34,7 +33,8 @@ pip cache purge -q 2>/dev/null || true
 
 if [ "$DEEP" = true ]; then
   echo "Deep clean: also removing the toolchain (Miniforge, FCM, JULES source)."
-  rm -rf "$HOME/miniforge3" "$HOME/fcm" "$HOME/jules_source"
+  rm -rf "$HOME/miniforge3" "$HOME/fcm" "$HOME/jules_source" "$HOME/.conda" "$HOME/.cache/pip"
+  rm -f "$HOME/install.log" "$HOME/.install.lock" /tmp/miniforge.sh
   # Leave the swapfile alone -- it's instance infrastructure, not tutorial
   # state, and re-creating it needs sudo + a few seconds either way.
 fi
@@ -42,4 +42,4 @@ fi
 echo
 echo "Disk usage after cleanup:"
 df -h "$HOME" | tail -1
-echo "Done. Re-run setup_ec2.sh (and build_jules.sh if --deep was used) to start again."
+echo "Done. To start again: the Quick start at the top of the README (install.sh)."

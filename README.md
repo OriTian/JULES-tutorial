@@ -895,6 +895,24 @@ itself.
 Run this on your laptop's terminal, not inside the SSH session — it's
 copying files *from* EC2 *to* your machine.
 
+## When you finish: clean up and shut down
+
+Copy your plots first (above): everything below deletes them. Then, in the
+EC2 window:
+
+```bash
+bash ~/jules-tutorial-data/scripts/clearup/clearup_ec2.sh --deep
+sudo shutdown -h now
+```
+
+The first line removes everything the tutorial put on the instance: run
+directories, tutorial data, `jules.exe`, Miniforge, FCM, the JULES source
+and the install log. It keeps the swap file and the system packages. The
+second line stops the instance, and your SSH connection closes. A stopped
+instance can be started again from the AWS console (its public address
+then changes); the owner deletes it for good with *Terminate* in the
+console.
+
 ## After class
 
 - Add `'latent_heat'` (gridbox latent heat flux, W m⁻²) to `var` in

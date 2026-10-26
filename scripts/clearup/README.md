@@ -33,10 +33,13 @@ bash ~/cleanup_ec2.sh --deep
 ```
 
 ```text
-~/miniforge3/    conda + netcdf-fortran   (~10 min to reinstall)
+~/miniforge3/    conda + netcdf-fortran + Python packages
 ~/fcm/           the FCM build tool
 ~/jules_source/  the cloned JULES source
+~/install.log    the install log, and the conda/pip caches
 ```
+
+`install.sh` puts all of it back in a few minutes.
 
 Use `--deep` before handing the instance off to someone else, or if you're
 tight enough on disk that the soft clean isn't enough.
