@@ -784,12 +784,13 @@ EC2 window), run this one line; it copies the plots to your Desktop:
 
 ```bash
 scp -i ~/Desktop/jules.pem "ec2-user@<your-ec2-ip>:kcl_default/*.png" ~/Desktop/
+open ~/Desktop/run1_t1p5m.png
 ```
 
 Replace `<your-ec2-ip>`, including the `< >`, with the address you use for
 `ssh`. If your key is not on the Desktop, change `~/Desktop/jules.pem`. On
-Windows PowerShell, write `$HOME\Desktop` wherever it says `~/Desktop`.
-Then double-click `run1_t1p5m.png` on your Desktop.
+Windows PowerShell, write `$HOME\Desktop` instead of `~/Desktop`, and
+`start` instead of `open`.
 
 **Expected plot:** two summers and one winter, monthly means from about
 3.7 °C (February–March 2013) to 20.0 °C (July 2013), with a daily cycle on
@@ -885,6 +886,7 @@ From your **local machine**:
 
 ```bash
 scp -i ~/Desktop/jules.pem "ec2-user@<your-ec2-ip>:kcl_default/*.png" ~/Desktop/
+open ~/Desktop/compare.png
 ```
 
 The quotes stop your laptop's shell (zsh on macOS) from expanding `*.png`
