@@ -18,7 +18,8 @@ keeps the installed toolchain:
 
 ```text
 ~/my_first_run/, ~/*_run/       run directories and their output/     (from get_run_directory.sh, run_jules.sh)
-/tmp/jules-tutorial-data*       downloaded tutorial data cache        (from get_run_directory.sh)
+~/jules-tutorial-data/          unpacked tutorial data                (from get_run.sh / README Step 24)
+/tmp/jules-tutorial-data.tar.gz downloaded archive                    (from get_run.sh / README Step 24)
 ~/jules_build/                  compiled jules.exe and build tree     (from build_jules.sh, ~1 min to rebuild)
 pip / conda package caches
 ```

@@ -1,0 +1,5 @@
+&jules_initial
+  dump_file=.true.
+  file='/path/to/UK-KingsCollege_default_spinup_end_20120401.nc'
+  total_snow=.false.
+/

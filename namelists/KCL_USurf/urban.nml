@@ -1,0 +1,17 @@
+&jules_urban
+  anthrop_heat_scale=1.00
+  l_moruses_albedo=.true.
+  l_moruses_emissivity=.true.
+  l_moruses_macdonald=.true.
+  l_moruses_rough=.true.
+  l_moruses_storage=.true.
+  l_moruses_storage_thin=.true.
+  l_urban_empirical=.false.
+/
+
+&urban_properties
+  nvars=7
+  use_file=7*.false.
+  var='wrr','hwr','hgt','albwl','albrd','emisw','emisr'
+  const_val=0.600000,1.130000,21.300000,0.375,0.08,0.875,0.95
+/

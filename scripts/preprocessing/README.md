@@ -2,8 +2,8 @@
 
 You only need this folder for **one reason**: running JULES somewhere
 other than the tutorial's example site (London St James's Park). If
-London is fine for now, skip this whole folder — `data/frac/` and
-`data/forcing/` already have everything the example needs.
+London is fine for now, skip this whole folder — `ancillary_data/` and
+`forcing_data/` already have everything the example needs.
 
 ## What JULES actually needs, in plain terms
 

@@ -1,0 +1,3 @@
+! NOT READ BY JULES. JULES reads &jules_frac from ancillaries.nml (a fixed
+! file name), so edit the fraction file path there, not here. This file is
+! kept only because it was part of the tested run directory.

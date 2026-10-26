@@ -17,7 +17,7 @@ them in this order:
    and `download_era5.py` build the tile-fraction and forcing inputs for a
    *new* site. Skip this on a first pass; the tutorial's example site
    (London_StJamesPark) already ships with these files pre-built in
-   `data/frac/` and `data/forcing/`.
+   `ancillary_data/` and `forcing_data/`.
 
 Once you've read those and understand what each step does, come back to
 **this file** — it's the fast path: the same four steps (build,
@@ -116,24 +116,24 @@ cat > ~/get_run_directory.sh << 'EOF'
 set -e
 
 RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
-TMP_TAR="/tmp/jules-tutorial-data.tar.gz"
-TMP_DIR="/tmp/jules-tutorial-data"
+TMP_TAR="/tmp/jules-tutorial-data.tar.gz"     # download archive only
+DATA_DIR="$HOME/jules-tutorial-data"          # unpacked data live in $HOME
 
 wget -q -O "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/refs/heads/main.tar.gz
-rm -rf "$TMP_DIR" && mkdir -p "$TMP_DIR"
-tar -xzf "$TMP_TAR" -C "$TMP_DIR" --strip-components=1
+rm -rf "$DATA_DIR" && mkdir -p "$DATA_DIR"
+tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
 
 mkdir -p "$RUN_DIR"
-cp -r "$TMP_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
+cp -r "$DATA_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
 mkdir -p "$RUN_DIR/output"   # JULES does not create this itself
 
-FRAC_FILE=$(find "$TMP_DIR" -iname "*frac*.nc" | head -1)
-FORCING_FILE=$(find "$TMP_DIR" -iname "*era5*.nc" | head -1)
+FRAC_FILE="$DATA_DIR/ancillary_data/London_StJamesPark_frac.nc"
+FORCING_FILE="$DATA_DIR/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc"
 sed -i "s|file='.*frac.*\.nc'|file='$FRAC_FILE'|" "$RUN_DIR/namelists/ancillaries.nml"
 sed -i "s|file='.*era5.*\.nc'|file='$FORCING_FILE'|" "$RUN_DIR/namelists/drive.nml"
 
 echo "Run directory ready: $RUN_DIR"
-echo "Namelist file count (should be ~41):"
+echo "Namelist file count (should be 44: 43 .nml + README):"
 ls "$RUN_DIR/namelists" | wc -l
 EOF
 bash ~/get_run_directory.sh

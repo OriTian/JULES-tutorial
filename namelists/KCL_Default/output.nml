@@ -1,0 +1,20 @@
+&jules_output
+  dump_period=1
+  dump_period_unit='Y'
+  nprofiles=1
+  output_dir='output'
+  run_id='kcl_default'
+/
+
+&jules_output_profile
+  file_period=0
+  nvars=11
+  output_main_run=.true.
+  output_period=3600
+  output_spinup=.false.
+  output_type=11*'M'
+  profile_name='hourly_output'
+  var='ftl_gb','fqw_gb','tstar_gb','t1p5m_gb','sw_down','lw_down',
+      'rad_net','tstar','t1p5m','ftl','lw_up'
+  var_name=11*''
+/

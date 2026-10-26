@@ -15,7 +15,7 @@ This directory contains the complete JULES namelist configuration used for the L
 The corresponding meteorological forcing file is:
 
 ```text
-data/forcing/London_StJamesPark_era5_2022_10-2023_12.nc
+forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc
 ```
 
 The forcing data are derived from ERA5 and contain hourly:
@@ -30,12 +30,16 @@ The forcing data are derived from ERA5 and contain hourly:
 
 The forcing period covers October 2022 to December 2023.
 
-For the tutorial run, the configuration uses:
+`data_start` and `data_end` in `drive.nml` describe this file, not the run:
 
 ```text
-data_start = 2023-02-01 00:00:00
-data_end   = 2023-07-31 23:00:00
+data_start = 2022-10-01 00:00:00   (time of the first record in the file)
+data_end   = 2024-01-01 00:00:00   (end of the hour of the last record, 2023-12-31 23:00)
 ```
+
+JULES does not read the time variable in the forcing file. It gives the first
+record the time `data_start` and counts forward by `data_period`, so a wrong
+`data_start` shifts the whole forcing in time without any error message.
 
 ## Simulation period
 
@@ -44,10 +48,11 @@ The main simulation period is:
 ```text
 2023-03-01 00:00:00
 to
-2023-07-31 23:00:00
+2023-08-01 00:00:00   (all of March–July: 3672 hourly steps)
 ```
 
-The February forcing period provides approximately one month of additional forcing before the main analysis period.
+The run starts from the constant initial state in `initial_conditions.nml`.
+With `max_spinup_cycles=0` there is no spin-up, so forcing before 1 March is not used.
 
 The model timestep is:
 
@@ -60,7 +65,7 @@ The model timestep is:
 The corresponding surface fraction file is:
 
 ```text
-data/frac/London_StJamesPark_frac.nc
+ancillary_data/London_StJamesPark_frac.nc
 ```
 
 The tutorial fraction configuration contains 10 surface tiles:

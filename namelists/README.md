@@ -10,8 +10,8 @@ Fortran programs read their settings from files shaped like this:
 
 ```fortran
 &jules_time
-  main_run_start = '2023-02-01 00:00:00'
-  main_run_end   = '2023-07-31 23:00:00'
+  main_run_start = '2023-03-01 00:00:00'
+  main_run_end   = '2023-08-01 00:00:00'
   timestep_len   = 3600
 /
 ```
@@ -45,7 +45,7 @@ file it expects, even if the physics in it is switched off for your run.
 
 ```text
 namelists/
-└── London_StJamesPark/     one runnable example: all ~41 .nml files JULES needs
+└── London_StJamesPark/     one runnable example: 43 .nml files
 ```
 
 Each subfolder here is one complete, ready-to-run **case** — a full set of
@@ -66,7 +66,7 @@ That's it — no arguments, no flags, just a folder. `jules.exe` reads every
 
 ## The 7 files worth actually understanding
 
-Of the ~41 files, these seven carry essentially all of the tutorial's
+Of the 43 files, these seven carry essentially all of the tutorial's
 site-specific and science-specific settings. Everything else can stay as
 it is.
 

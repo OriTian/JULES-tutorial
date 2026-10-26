@@ -1,6 +1,6 @@
 &jules_frac
   read_from_dump=.false.
-  file='/path/to/jules-urban-workflow/data/frac/London_StJamesPark_frac.nc'
+  file='/path/to/London_StJamesPark_frac.nc'
   frac_name='frac'
 /
 

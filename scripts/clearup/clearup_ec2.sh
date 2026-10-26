@@ -21,9 +21,9 @@ echo "Disk usage before cleanup:"
 df -h "$HOME" | tail -1
 
 # Run output and downloaded run directories (safe -- regenerate with
-# get_run_directory.sh + run_jules.sh)
-rm -rf "$HOME"/my_first_run "$HOME"/*_run
-rm -rf /tmp/jules-tutorial-data /tmp/jules-tutorial-data.tar.gz
+# get_run.sh + jules.exe)
+rm -rf "$HOME"/kcl_default "$HOME"/kcl_usurf "$HOME"/london_stjamespark "$HOME"/my_first_run "$HOME"/*_run
+rm -rf "$HOME"/jules-tutorial-data /tmp/jules-tutorial-data /tmp/jules-tutorial-data.tar.gz
 
 # Build artifacts (safe -- regenerate with build_jules.sh, ~1 minute)
 rm -rf "$HOME/jules_build"

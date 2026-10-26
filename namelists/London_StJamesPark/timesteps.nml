@@ -3,7 +3,7 @@
   l_leap=.true.
   l_local_solar_time=.false.
   main_run_start='2023-03-01 00:00:00'   ! after your spin-up period
-  main_run_end='2023-07-31 23:00:00'
+  main_run_end='2023-08-01 00:00:00'
   print_step=48
   timestep_len=3600
 /

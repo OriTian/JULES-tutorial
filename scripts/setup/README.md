@@ -155,7 +155,7 @@ This script:
 ```text
 1. downloads this whole tutorial repo (a wget of a GitHub archive, not a
    git clone -- no git metadata needed, just the files)
-2. copies the London_StJamesPark example's ~41 namelist files into your
+2. copies the London_StJamesPark example's 43 namelist files into your
    new run directory
 3. finds the tile-fraction (*frac*.nc) and weather (*era5*.nc) files it
    just downloaded, and rewrites the placeholder file= paths inside
@@ -173,7 +173,7 @@ RUN_DIR=~/my_second_run bash ~/get_run_directory.sh
 ```
 
 **Success indicator**: the script prints a namelist file count that should
-read "~41". If it's much lower, the download or copy step silently failed
+read 44 (43 .nml files plus a README). If it's lower, the download or copy step silently failed
 partway through.
 
 ## What's next

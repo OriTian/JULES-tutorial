@@ -1,0 +1,53 @@
+&jules_frac
+  read_from_dump=.false.
+  file='/path/to/UK-KingsCollege_default_frac.nc'
+  frac_name='frac'
+/
+
+&jules_vegetation_props
+/
+
+&jules_soil_props
+  read_from_dump=.false.
+  const_z=.true.
+  nvars=9
+  use_file=9*.false.
+  var='b','sathh','satcon','sm_sat','sm_crit','sm_wilt','hcap','hcon','albsoil'
+  const_val=7.0, 0.204, 2.95e-6, 0.458, 0.330, 0.204, 1.3e6, 0.50, 0.20
+/
+
+&jules_top
+/
+
+&jules_pdm
+/
+
+&jules_agric
+  zero_agric=.true.
+/
+
+&jules_crop_props
+/
+
+&jules_irrig_props
+/
+
+&jules_rivers_props
+/
+
+&jules_water_resources_props
+/
+
+&urban_properties
+  nvars=4
+  use_file=4*.false.
+  var='albwl','albrd','emisw','emisr'
+  const_val=0.25,0.08,0.9,0.95
+/
+
+&jules_flake
+/
+
+&jules_co2
+  co2_mmr=6.455e-4
+/

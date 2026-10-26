@@ -509,19 +509,19 @@ everything after this is per-run, not per-build.
 
 ## Step 24. Download this tutorial's data
 
-Every JULES run needs a `namelists/` folder (~41 small text config files)
+Every JULES run needs a `namelists/` folder (43 small `.nml` config files)
 plus forcing and land-cover data. Rather than assembling all of that by
 hand, one script downloads a ready-made example site
 (`London_StJamesPark`) and wires the paths together automatically.
 
 ```bash
 RUN_DIR="${RUN_DIR:-$HOME/my_first_run}"
-TMP_TAR="/tmp/jules-tutorial-data.tar.gz"
-TMP_DIR="/tmp/jules-tutorial-data"
+TMP_TAR="/tmp/jules-tutorial-data.tar.gz"     # download archive only
+DATA_DIR="$HOME/jules-tutorial-data"          # unpacked data live in $HOME
 
 wget -q -O "$TMP_TAR" https://github.com/OriTian/JULES-tutorial/archive/refs/heads/main.tar.gz
-rm -rf "$TMP_DIR" && mkdir -p "$TMP_DIR"
-tar -xzf "$TMP_TAR" -C "$TMP_DIR" --strip-components=1
+rm -rf "$DATA_DIR" && mkdir -p "$DATA_DIR"
+tar -xzf "$TMP_TAR" -C "$DATA_DIR" --strip-components=1
 ```
 
 ```text
@@ -532,12 +532,17 @@ tar --strip-components=1   unpack it, dropping the repo-name folder level
 This downloads a snapshot via `wget` (not `git clone`) — no repo history,
 no git metadata, just the files this tutorial needs.
 
+Only the download archive goes in `/tmp`. The unpacked data live in
+`$HOME/jules-tutorial-data`: on Amazon Linux 2023, `/tmp` is a RAM-backed
+tmpfs (capped at half the memory) and is emptied on reboot.
+
 Repository layout, once unpacked:
 
 ```text
-data/frac/        land-cover fraction files (.nc)
-data/forcing/     meteorological forcing files (.nc)
-namelists/        model configuration templates, one folder per site
+ancillary_data/   land-cover fraction file (.nc)
+forcing_data/     meteorological forcing file (.nc)
+namelists/        model configuration, one folder per site
+scripts/          setup, run and plotting helpers
 ```
 
 ---
@@ -548,7 +553,7 @@ namelists/        model configuration templates, one folder per site
 
 ```bash
 mkdir -p "$RUN_DIR"
-cp -r "$TMP_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
+cp -r "$DATA_DIR/namelists/London_StJamesPark" "$RUN_DIR/namelists"
 mkdir -p "$RUN_DIR/output"   # JULES does not create this itself
 ```
 
@@ -565,8 +570,8 @@ those paths need to point at the files you just downloaded, not a
 placeholder. Two lines need patching:
 
 ```bash
-FRAC_FILE=$(find "$TMP_DIR" -iname "*frac*.nc" | head -1)
-FORCING_FILE=$(find "$TMP_DIR" -iname "*era5*.nc" | head -1)
+FRAC_FILE="$DATA_DIR/ancillary_data/London_StJamesPark_frac.nc"
+FORCING_FILE="$DATA_DIR/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc"
 sed -i "s|file='.*frac.*\.nc'|file='$FRAC_FILE'|" "$RUN_DIR/namelists/ancillaries.nml"
 sed -i "s|file='.*era5.*\.nc'|file='$FORCING_FILE'|" "$RUN_DIR/namelists/drive.nml"
 ```
@@ -576,9 +581,11 @@ sed -i "s|file='.*era5.*\.nc'|file='$FORCING_FILE'|" "$RUN_DIR/namelists/drive.n
 > generic path the file was written with, and JULES fails at startup with
 > a file-not-found error the first time it tries to open the forcing file.
 
-Verify the count of namelist files (should be ~41 — JULES opens a fixed set
-of files by name at startup, so all of them need to be present even though
-you'll only ever edit a handful):
+Steps 25–27 in one go: `bash "$DATA_DIR/scripts/setup/get_run.sh"`.
+
+Verify the count (should be 44: 43 `.nml` files plus a README). Keep the
+tested directory together during the tutorial and edit only the files the
+tutorial asks you to:
 
 ```bash
 ls "$RUN_DIR/namelists" | wc -l
@@ -624,8 +631,8 @@ The run prints progress and ends by closing its output files, with no
 
 ```text
 [INFO] WRITE_DUMP: albsoil
-[INFO] file_ncdf_close: Closing file output/my_first_run.dump.20230731.82800.nc
-[INFO] file_ncdf_close: Closing file /tmp/jules-tutorial-data/data/forcing/London_StJamesPark_era5_2022_10-2023_12.nc
+[INFO] file_ncdf_close: Closing file output/my_first_run.dump.20230801.0.nc
+[INFO] file_ncdf_close: Closing file /home/ec2-user/jules-tutorial-data/forcing_data/London_StJamesPark_era5_2022_10-2023_12.nc
 [INFO] file_ncdf_close: Closing file output/my_first_run.hourly_output.nc
 ```
 
@@ -645,7 +652,7 @@ ls output
 ```
 
 ```text
-my_first_run.dump.20230301.0.nc  my_first_run.dump.20230731.82800.nc  my_first_run.hourly_output.nc
+my_first_run.dump.20230301.0.nc  my_first_run.dump.20230801.0.nc  my_first_run.hourly_output.nc
 ```
 
 The `dump.*` files are restart/state snapshots; `hourly_output.nc` is the

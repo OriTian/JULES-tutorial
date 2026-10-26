@@ -1,0 +1,9 @@
+&jules_time
+  l_360=.false.
+  l_leap=.true.
+  l_local_solar_time=.false.
+  main_run_start='2019-01-01 00:00:00'
+  main_run_end='2019-12-30 00:00:00'
+  print_step=48
+  timestep_len=3600
+/
