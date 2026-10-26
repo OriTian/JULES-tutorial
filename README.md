@@ -391,8 +391,15 @@ either.
 ## Step 12. Install
 
 ```bash
-conda install -y -c conda-forge netcdf-fortran
+conda install -y -c conda-forge "netcdf-fortran=4.6.4=nompi_*_100"
 ```
+
+> **Why this exact build:** JULES is compiled with the system gfortran 11,
+> and it must read the `netcdf.mod` file that comes with `netcdf-fortran`.
+> conda-forge builds since September 2026 are compiled with gfortran 15,
+> whose `.mod` files gfortran 11 cannot read (`Cannot read module file
+> 'netcdf.mod' ... created by a different version of GNU Fortran`). Build
+> `_100` of 4.6.4 was compiled with gfortran 14 and works.
 
 > **Only `netcdf-fortran` here — not `xarray` or other Python packages.**
 > Installing more packages alongside it makes conda's dependency solver do
@@ -450,10 +457,13 @@ FCM 2021.05.0-12-g3b045b3 (/home/ec2-user/fcm)
 ## Step 16. Clone the JULES source
 
 This is the one genuine external dependency in the whole setup — everything
-else so far has been generic Linux tooling.
+else so far has been generic Linux tooling. `--branch vn8.1` fixes the
+version: the tutorial namelists were tested with JULES vn8.1, and the
+`main` branch keeps changing.
 
 ```bash
-git clone -q --depth 1 https://github.com/MetOffice/jules.git ~/jules_source
+git -c advice.detachedHead=false clone -q --depth 1 --branch vn8.1 \
+  https://github.com/MetOffice/jules.git ~/jules_source
 ```
 
 ## Important folders inside it
@@ -485,7 +495,7 @@ export JULES_OMP=noomp
 export JULES_MPI=nompi
 export JULES_NETCDF=netcdf
 export JULES_NETCDF_PATH=$HOME/miniforge3
-export JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error"
+export JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error -std=gnu"
 ```
 
 ```text
@@ -497,8 +507,11 @@ JULES_MPI=nompi         single-process build, no MPI
 JULES_OMP=noomp         no shared-memory (OpenMP) parallelism
 JULES_NETCDF=netcdf     enable NetCDF file I/O, pointed at Miniforge's copy
 JULES_FFLAGS_EXTRA       gfortran 11 is strict about JULES's dummy-MPI
-                         stub's implicit interface; without these two
-                         flags the build fails with a hard compiler error
+                         stub's implicit interface; without the first two
+                         flags the build fails with a hard compiler error.
+                         -std=gnu overrides the strict -std=f2003 in
+                         JULES's gfortran settings (the JASMIN gfortran
+                         build of the same source also drops it)
 ```
 
 ## Step 22. Compile
@@ -888,6 +901,7 @@ Use **AI** to help, and **save the prompts you used**.
 | `gfortran: command not found` | compiler not installed | `sudo dnf install gcc-gfortran` |
 | `fcm: command not found` | FCM not on `PATH` | `export PATH=$HOME/fcm/bin:$PATH` |
 | build fails with an MPI-interface compiler error | missing `JULES_FFLAGS_EXTRA` | re-export the full variable list in Chapter 9, Step 18–21, before rebuilding |
+| `Cannot read module file '.../netcdf.mod'` | `netcdf-fortran` compiled by a newer gfortran | install the build in Chapter 6, `rm -rf ~/jules_build`, rebuild |
 | `nf-config: command not found` | NetCDF-Fortran not installed / conda not activated | `source ~/miniforge3/bin/activate`, then Chapter 6 |
 | `[FATAL ERROR]` naming a file at startup | wrong path in a namelist | `ls` the path named in the message; or `rm -rf ~/kcl_default` and rerun `get_run.sh default` (Chapter 11) |
 | `get_run.sh`: `already exists` | the run directory is already there | `rm -rf ~/kcl_default` (or `~/kcl_usurf`) and rerun |

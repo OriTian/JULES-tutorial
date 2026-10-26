@@ -66,9 +66,19 @@ sudo dnf install -y git make gcc gcc-gfortran \
   bash /tmp/miniforge.sh -b -p "$HOME/miniforge3"
 }
 source "$HOME/miniforge3/bin/activate"
-conda install -y -c conda-forge netcdf-fortran
+# build _100 was compiled with gfortran 14; conda-forge builds since Sept 2026 use
+# gfortran 15, whose netcdf.mod the system gfortran 11 cannot read
+conda install -y -c conda-forge "netcdf-fortran=4.6.4=nompi_*_100"
 [ -d "$HOME/fcm" ] || git clone -q https://github.com/metomi/fcm.git "$HOME/fcm"
-[ -d "$HOME/jules_source" ] || git clone -q --depth 1 https://github.com/MetOffice/jules.git "$HOME/jules_source"
+# vn8.1: the JULES version the tutorial namelists were tested with. Another
+# version in ~/jules_source is replaced, and its build directory removed.
+JULES_REF=vn8.1
+if [ "$(cat "$HOME/jules_source/.tutorial_ref" 2>/dev/null)" != "$JULES_REF" ]; then
+  rm -rf "$HOME/jules_source" "$HOME/jules_build"
+  git -c advice.detachedHead=false clone -q --depth 1 --branch "$JULES_REF" \
+    https://github.com/MetOffice/jules.git "$HOME/jules_source"
+  echo "$JULES_REF" > "$HOME/jules_source/.tutorial_ref"
+fi
 pip install --quiet matplotlib pandas netCDF4 xarray
 echo "Setup complete."
 EOF
@@ -132,14 +142,20 @@ JULES_MPI=nompi         single-point runs don't need MPI (parallel
 JULES_FFLAGS_EXTRA=...  see below
 ```
 
-**Why `JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error"`**:
+**Why `JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error -std=gnu"`**:
 gfortran 11 (the version on this instance) is stricter than older versions
 about function-argument consistency, and flags JULES's dummy-MPI stub
 (deliberately written without a strict interface, since it's never
-actually used here) as a hard compile error. These two flags just
+actually used here) as a hard compile error. The first two flags just
 downgrade that specific check back to a warning — harmless in practice.
-**Verified**: the build completes cleanly and produces a working
-`jules.exe`.
+`-std=gnu` overrides the strict `-std=f2003` in JULES's own gfortran
+settings.
+
+**Why `netcdf-fortran=4.6.4=nompi_*_100`**: JULES reads the `netcdf.mod`
+file that comes with `netcdf-fortran`, and gfortran 11 can only read
+`.mod` files from gfortran 14 or older. conda-forge builds since September
+2026 are compiled with gfortran 15 and fail with `Cannot read module file
+'netcdf.mod' ... created by a different version of GNU Fortran`.
 
 `-j 1` (not `-j 4`) means "compile one file at a time" — this instance
 doesn't have enough RAM to compile several files in parallel. Still only

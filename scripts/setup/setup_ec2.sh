@@ -19,13 +19,23 @@ sudo dnf install -y git make gcc gcc-gfortran \
   bash /tmp/miniforge.sh -b -p "$HOME/miniforge3"
 }
 source "$HOME/miniforge3/bin/activate"
-conda install -y -c conda-forge netcdf-fortran
+# build _100 was compiled with gfortran 14; conda-forge builds since Sept 2026 use
+# gfortran 15, whose netcdf.mod the system gfortran 11 cannot read
+conda install -y -c conda-forge "netcdf-fortran=4.6.4=nompi_*_100"
 
 # 4. FCM
 [ -d "$HOME/fcm" ] || git clone -q https://github.com/metomi/fcm.git "$HOME/fcm"
 
 # 5. JULES source
-[ -d "$HOME/jules_source" ] || git clone -q --depth 1 https://github.com/MetOffice/jules.git "$HOME/jules_source"
+# vn8.1: the JULES version the tutorial namelists were tested with. Another
+# version in ~/jules_source is replaced, and its build directory removed.
+JULES_REF=vn8.1
+if [ "$(cat "$HOME/jules_source/.tutorial_ref" 2>/dev/null)" != "$JULES_REF" ]; then
+  rm -rf "$HOME/jules_source" "$HOME/jules_build"
+  git -c advice.detachedHead=false clone -q --depth 1 --branch "$JULES_REF" \
+    https://github.com/MetOffice/jules.git "$HOME/jules_source"
+  echo "$JULES_REF" > "$HOME/jules_source/.tutorial_ref"
+fi
 
 # 6. Python plotting/analysis stack -- pip, not conda (see README.md)
 pip install --quiet matplotlib pandas netCDF4 xarray

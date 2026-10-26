@@ -9,8 +9,10 @@ export JULES_OMP=noomp
 export JULES_NETCDF=netcdf
 export JULES_NETCDF_PATH=$HOME/miniforge3
 export JULES_MPI=nompi
-export JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error"
+export JULES_FFLAGS_EXTRA="-fallow-argument-mismatch -Wno-error -std=gnu"
 
+# no jules.exe yet (first build, or a failed one): start from an empty build directory
+[ -x ~/jules_build/build/bin/jules.exe ] || rm -rf ~/jules_build
 mkdir -p ~/jules_build && cd ~/jules_build
 fcm make -f ~/jules_source/etc/fcm-make/make.cfg -j 1
 
