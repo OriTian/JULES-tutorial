@@ -8,6 +8,13 @@
 #   tail -n 3 ~/install.log      # progress; the last line says INSTALL DONE when finished
 # Safe to rerun after a failure: finished steps are skipped.
 set -e
+
+# one install at a time: a second copy (e.g. the line pasted twice) stops here
+exec 9> "$HOME/.install.lock"
+if ! flock -n 9; then
+  echo "install.sh is already running: wait for it (tail -n 3 ~/install.log)"
+  exit 1
+fi
 trap 'echo "INSTALL FAILED: read the lines above, then rerun install.sh"' ERR
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
