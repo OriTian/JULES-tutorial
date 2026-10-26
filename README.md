@@ -777,6 +777,21 @@ t1p5m_gb   1.5 m air temperature, gridbox mean (kelvin in the file)
 - 273.15   convert kelvin to °C before plotting
 ```
 
+## Step 30b. See the plot on your laptop
+
+EC2 has no screen. Open a **second terminal on your laptop** (keep the EC2
+window), go to the folder that holds `jules.pem`, and copy the plot over:
+
+```bash
+cd ~/Desktop
+scp -i jules.pem ec2-user@<your-ec2-ip>:kcl_default/run1_t1p5m.png .
+open run1_t1p5m.png          # Windows: start run1_t1p5m.png
+```
+
+Keep the `scp` line on one line (Windows PowerShell does not understand
+`\` line breaks). The path after the colon starts in your home directory
+on EC2.
+
 **Expected plot:** two summers and one winter, monthly means from about
 3.7 °C (February–March 2013) to 20.0 °C (July 2013), with a daily cycle on
 every day. A curve around 270–300 means the kelvin conversion is missing.
@@ -870,8 +885,11 @@ This is a model-to-model comparison; observations are not evaluated here.
 From your **local machine**:
 
 ```bash
-scp -i jules.pem ec2-user@<your-ec2-ip>:~/kcl_default/*.png ~/Downloads/
+scp -i jules.pem "ec2-user@<your-ec2-ip>:kcl_default/*.png" .
 ```
+
+The quotes stop your laptop's shell (zsh on macOS) from expanding `*.png`
+itself.
 
 Run this on your laptop's terminal, not inside the SSH session — it's
 copying files *from* EC2 *to* your machine.
