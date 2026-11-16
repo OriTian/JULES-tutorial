@@ -1,4 +1,4 @@
-"""Run 1 quick look: the 1.5 m air temperature of KCL Default.
+"""Run 1 quick look: t1p5m_gb, the gridbox screen temperature of KCL Default.
 
 Run from anywhere:   python "$DATA_DIR/scripts/quicklook.py"
 Reads  ~/kcl_default/output/kcl_default.hourly_output.nc
@@ -31,7 +31,7 @@ plt.rcParams.update({"font.size": 18})
 fig, ax = plt.subplots(figsize=(10, 4.6), layout="constrained")
 ax.plot(t["time"], t, color="#5E6670", lw=0.4, alpha=0.5, label="Every hour")
 ax.plot(daily["time"] + np.timedelta64(12, "h"), daily, color="#16302B", lw=2.0, label="Daily mean")
-ax.set_ylabel("T$_{1.5\\,m}$ gridbox (°C)")
+ax.set_ylabel("t1p5m_gb (°C)")
 ax.set_xlim(np.datetime64("2012-04-01"), np.datetime64("2014-01-01"))
 ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=[1, 4, 7, 10]))
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))

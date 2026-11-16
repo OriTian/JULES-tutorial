@@ -3,7 +3,7 @@
 A step-by-step lab for running JULES with the MORUSES urban scheme on a
 group EC2 instance — from first SSH connection through building JULES,
 running King's College London (KCL) with two urban descriptions, Default
-and U-Surf, and comparing their air temperature. No prior JULES experience
+and U-Surf, and comparing their screen temperature, `t1p5m_gb`. No prior JULES experience
 assumed.
 
 Every command block below is complete and self-contained — copy the whole
@@ -64,8 +64,8 @@ Chapters 3–9     Build              swap, compiler, Miniforge, NetCDF-Fortran,
 Chapters 10–12   Run                get the data, copy Run 1 (KCL Default),
                                     execute JULES
 Chapters 13–14   Check the output   confirm it ran, read and plot it in Python
-Chapters 15–16   Compare            Run 2 (KCL U-Surf), compare the 1.5 m air
-                                    temperature of the two runs
+Chapters 15–16   Compare            Run 2 (KCL U-Surf), compare t1p5m_gb
+                                    (screen temperature) of the two runs
 Chapters 17–18   Reference          common-errors table + a final checklist —
                                     come back to these when something breaks,
                                     no need to read them in order
@@ -209,7 +209,7 @@ Meteorology
  │ Carbon      │
  └─────────────┘
     ↓
-Air temperature, surface temperature,
+Screen temperature, surface temperature,
 sensible heat, latent heat
 ```
 
@@ -557,7 +557,7 @@ everything after this is per-run, not per-build.
 ## Today's case: KCL, two runs
 
 The tutorial runs JULES at King's College London (KCL, central London)
-twice and compares the 1.5 m air temperature:
+twice and compares `t1p5m_gb`, the gridbox screen temperature:
 
 ```text
 Run 1   KCL Default   urban form from the empirical formulas (l_urban_empirical)
@@ -773,7 +773,9 @@ t = ds["t1p5m_gb"].squeeze() - 273.15      # K -> °C; squeeze drops the 1 x 1 g
 ```
 
 ```text
-t1p5m_gb   1.5 m air temperature, gridbox mean (kelvin in the file)
+t1p5m_gb   screen temperature (kelvin in the file): on each tile JULES puts it
+           1.5 m above that tile's displacement height d, then takes the
+           area-weighted mean over all tiles
 - 273.15   convert kelvin to °C before plotting
 ```
 
@@ -859,9 +861,9 @@ python "$DATA_DIR/scripts/compare.py"
 Expected:
 
 ```text
-U-Surf - Default, all hours: -0.21 K
+ΔT = U-Surf - Default of t1p5m_gb, all hours: -0.21 K
   daytime -0.27 K, night-time -0.14 K
-  U-Surf is cooler in 98 % of hours
+  ΔT < 0 in 98 % of hours
 saved /home/ec2-user/kcl_default/compare.png
 ```
 
@@ -972,7 +974,7 @@ After completing this lab, you should be able to:
 - [ ] Start JULES on EC2 and tell from the log and the dump files that it worked
 - [ ] Inspect NetCDF output with `ncdump` and `xarray`
 - [ ] Plot `t1p5m_gb` and get a sensible-looking diurnal cycle
-- [ ] List what differs between KCL Default and U-Surf, and compare their 1.5 m air temperature
+- [ ] List what differs between KCL Default and U-Surf, and compare their `t1p5m_gb`
 - [ ] Diagnose the common failures in Chapter 17 without help
 
 ---

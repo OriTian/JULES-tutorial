@@ -1,4 +1,4 @@
-"""Compare Run 1 (KCL Default) and Run 2 (KCL U-Surf): the 1.5 m air temperature.
+"""Compare Run 1 (KCL Default) and Run 2 (KCL U-Surf): the gridbox screen temperature t1p5m_gb.
 
 Run from anywhere:   python "$DATA_DIR/scripts/compare.py"
 Reads  ~/kcl_default/output/kcl_default.hourly_output.nc and ~/kcl_usurf/output/kcl_usurf.hourly_output.nc
@@ -28,9 +28,9 @@ tu = u["t1p5m_gb"].squeeze() - 273.15
 diff = tu - td                                 # U-Surf minus Default, every hour
 day = d["sw_down"].squeeze() > 10              # daytime: sunlight above 10 W m-2
 
-print(f"U-Surf - Default, all hours: {float(diff.mean()):+.2f} K")
+print(f"ΔT = U-Surf - Default of t1p5m_gb, all hours: {float(diff.mean()):+.2f} K")
 print(f"  daytime {float(diff.where(day).mean()):+.2f} K, night-time {float(diff.where(~day).mean()):+.2f} K")
-print(f"  U-Surf is cooler in {100 * float((diff < 0).mean()):.0f} % of hours")
+print(f"  ΔT < 0 in {100 * float((diff < 0).mean()):.0f} % of hours")
 
 # each value is the mean of the hour ENDING at its time stamp: use the middle of the hour
 def middle(x):
@@ -51,7 +51,7 @@ c = fig.add_subplot(grid[:, 1])
 
 a.plot(dd["time"] + noon, dd, color="#5E6670", lw=2.4, label="Default")
 a.plot(du["time"] + noon, du, color="#1F6FB2", lw=1.3, label="U-Surf")
-a.set_ylabel("T$_{1.5\\,m}$ (°C)")
+a.set_ylabel("t1p5m_gb (°C)")
 a.set_title("a  Daily mean, both runs", loc="left", fontweight="bold", fontsize=16)
 a.set_ylim(float(dd.min()) - 1, float(dd.max()) + 0.45 * float(dd.max() - dd.min()))
 a.legend(loc="upper left", frameon=False, ncol=2, fontsize=15)
